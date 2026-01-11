@@ -458,6 +458,41 @@ const myPlugin = {
         editor.addWidget('weather', 'Weather', function(container) {
             container.innerHTML = '&lt;div style="padding:20px;"&gt;🌤️ Weather Widget&lt;/div&gt;';
         });
+        
+        // Add custom theme
+        editor.addTheme('sakura', {
+            bg: '#fff5f5',
+            card: '#ffffff',
+            text: '#4a4a4a',
+            textMuted: '#9f9f9f',
+            border: '#ffcccc',
+            accent: '#ff69b4',
+            accentHover: '#ff1493',
+            danger: '#dc143c',
+            success: '#32cd32',
+            warning: '#ffa500'
+        });
+        
+        // Add custom language
+        editor.addLanguage('ko', '한국어', {
+            calendar: "캘린더",
+            editor: "에디터",
+            todo: "할일",
+            clock: "시계",
+            save: "저장",
+            // ... more translations
+        });
+        
+        // Add custom toolbar button
+        editor.addToolbarButton({
+            id: 'help',
+            icon: 'close', // or custom SVG HTML
+            title: 'Help',
+            position: 'right',
+            onClick: function() {
+                alert('Help clicked!');
+            }
+        });
     }
 };
 
@@ -468,6 +503,34 @@ const editor = new MultiEditor('#editor', {
 
 // Or register later
 editor.registerPlugin(myPlugin);</code></pre>
+
+            <h3>🛠️ Toolbar Customization</h3>
+            <pre><code>// Customize toolbar layout
+const editor = new MultiEditor('#editor', {
+    toolbarLayout: {
+        showWidgetButtons: true,
+        showLanguageSelector: true,
+        showThemeSelector: true,
+        showFullscreenButton: true,
+        showExportButton: true,
+        showImportButton: true,
+        showSaveButton: true,
+        compactMode: false  // Set true to hide button text labels
+    }
+});
+
+// Update layout dynamically
+editor.setToolbarLayout({
+    showExportButton: false,
+    compactMode: true
+});
+
+// Add custom icon
+editor.addIcon('custom', '&lt;circle cx="12" cy="12" r="10"/&gt;');
+
+// Get available themes/languages
+const themes = editor.getThemes();
+const languages = editor.getLanguages();</code></pre>
             
             <h3>⌨️ Keyboard Shortcuts</h3>
             <ul>

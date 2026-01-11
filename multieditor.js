@@ -141,6 +141,29 @@ class MultiEditor {
             'forest', 'lavender', 'copper'
         ];
         
+        // Available languages (can be extended via plugin)
+        this._languages = [
+            { code: 'ja', name: '日本語' },
+            { code: 'en', name: 'English' },
+            { code: 'zh', name: '中文' }
+        ];
+        
+        // Custom toolbar buttons (can be added via plugin)
+        this._customToolbarButtons = [];
+        
+        // Toolbar layout configuration
+        this.cfg.toolbarLayout = {
+            showWidgetButtons: true,
+            showLanguageSelector: true,
+            showThemeSelector: true,
+            showFullscreenButton: this.cfg.enableFullscreen,
+            showExportButton: true,
+            showImportButton: true,
+            showSaveButton: true,
+            compactMode: false,     // If true, hide text labels on buttons
+            ...config.toolbarLayout
+        };
+        
         // Calendar state
         this.selectedDate = new Date().toISOString().split('T')[0];
         this.calendarViewDate = new Date();
@@ -272,20 +295,90 @@ class MultiEditor {
                 align-items: center; 
                 backdrop-filter: var(--blur, none);
                 z-index: 50;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 gap: 10px;
+                min-height: 56px;
             }
             .me-toolbar-left {
                 display: flex;
                 gap: 6px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 align-items: center;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: thin;
+                scrollbar-color: var(--border) transparent;
+                flex: 1;
+                min-width: 0;
+                padding: 4px 0;
+            }
+            .me-toolbar-left::-webkit-scrollbar {
+                height: 4px;
+            }
+            .me-toolbar-left::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .me-toolbar-left::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 2px;
             }
             .me-toolbar-right {
                 display: flex;
                 gap: 8px;
                 align-items: center;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                flex-shrink: 0;
+            }
+            
+            /* Responsive toolbar - compact mode */
+            @media (max-width: 768px) {
+                .me-toolbar {
+                    padding: 8px 12px;
+                    flex-wrap: wrap;
+                }
+                .me-toolbar-left {
+                    order: 2;
+                    width: 100%;
+                    flex: none;
+                    justify-content: flex-start;
+                }
+                .me-toolbar-right {
+                    order: 1;
+                    width: 100%;
+                    justify-content: flex-end;
+                }
+                .me-btn span {
+                    display: none;
+                }
+                .me-btn {
+                    padding: 6px 10px;
+                }
+                .me-select-trigger {
+                    padding: 6px 10px;
+                    font-size: 11px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .me-toolbar {
+                    padding: 6px 8px;
+                }
+                .me-btn {
+                    padding: 4px 8px;
+                    font-size: 10px;
+                }
+                .me-btn.icon-only {
+                    width: 28px;
+                    height: 28px;
+                }
+                .me-widget-h {
+                    padding: 8px 10px;
+                    font-size: 10px;
+                }
+                /* Single column on very small screens */
+                .me-grid {
+                    grid-template-columns: 1fr !important;
+                }
             }
             
             /* ========================================
@@ -294,7 +387,7 @@ class MultiEditor {
             .me-grid { 
                 display: grid; 
                 flex: 1; 
-                overflow: hidden; 
+                overflow: auto; 
                 background: var(--border); 
                 gap: 1px;
                 min-height: 0;
@@ -418,6 +511,9 @@ class MultiEditor {
                 font-weight: 600;
                 transition: var(--me-transition);
                 white-space: nowrap;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
             }
             .me-select-trigger:hover {
                 border-color: var(--accent);
@@ -425,17 +521,20 @@ class MultiEditor {
             .me-select-menu { 
                 position: absolute; 
                 top: 110%; 
-                right: 0; 
                 background: var(--card); 
                 border: 1px solid var(--border); 
                 border-radius: var(--me-radius-sm); 
                 display: none; 
                 box-shadow: var(--me-shadow-lg);
                 width: 140px; 
-                max-height: 250px; 
+                max-height: 200px; 
                 overflow-y: auto; 
-                z-index: 100;
+                z-index: 1000;
             }
+            /* Position dropdown to stay within viewport */
+            .me-select-menu.align-left { left: 0; right: auto; }
+            .me-select-menu.align-right { right: 0; left: auto; }
+            .me-select-menu.align-top { top: auto; bottom: 110%; }
             .me-select-menu.show { display: block; animation: me-fadeIn 0.2s ease; }
             .me-opt { 
                 padding: 10px 14px; 
@@ -1095,61 +1194,116 @@ class MultiEditor {
     }
 
     _renderFramework() {
+        const layout = this.cfg.toolbarLayout;
+        const compactClass = layout.compactMode ? 'compact' : '';
+        
+        // Build toolbar right section
+        let toolbarRight = '';
+        
+        // Custom buttons (left position)
+        this._customToolbarButtons
+            .filter(b => b.position === 'left')
+            .forEach(b => {
+                toolbarRight += `<button class="me-btn icon-only ${b.className}" id="me-custom-${b.id}" title="${b.title}">${this._svgIcon(b.icon, 14) || b.icon}</button>`;
+            });
+        
+        if (layout.showLanguageSelector) {
+            toolbarRight += `
+                <div class="me-select" id="me-lang-sel">
+                    <div class="me-select-trigger">${this._svgIcon('globe', 14)} ${this.cfg.lang.toUpperCase()}</div>
+                    <div class="me-select-menu"></div>
+                </div>`;
+        }
+        
+        if (layout.showThemeSelector) {
+            toolbarRight += `
+                <div class="me-select" id="me-theme-sel">
+                    <div class="me-select-trigger">${this._svgIcon('palette', 14)} ${this._capitalize(this.cfg.defaultStyle)}</div>
+                    <div class="me-select-menu"></div>
+                </div>`;
+        }
+        
+        if (layout.showFullscreenButton) {
+            toolbarRight += `<button class="me-btn icon-only" id="me-fullscreen" title="Fullscreen">${this._svgIcon('maximize', 16)}</button>`;
+        }
+        
+        if (layout.showExportButton) {
+            toolbarRight += `<button class="me-btn icon-only" id="me-export" title="${this.t.export}">${this._svgIcon('download', 16)}</button>`;
+        }
+        
+        if (layout.showImportButton) {
+            toolbarRight += `<button class="me-btn icon-only" id="me-import" title="${this.t.import}">${this._svgIcon('upload', 16)}</button>`;
+            toolbarRight += `<input type="file" id="me-import-file" accept=".json" style="display:none;">`;
+        }
+        
+        // Custom buttons (right position)
+        this._customToolbarButtons
+            .filter(b => b.position === 'right')
+            .forEach(b => {
+                toolbarRight += `<button class="me-btn icon-only ${b.className}" id="me-custom-${b.id}" title="${b.title}">${this._svgIcon(b.icon, 14) || b.icon}</button>`;
+            });
+        
+        if (layout.showSaveButton) {
+            toolbarRight += `<button class="me-btn primary" id="me-save-main">${this._svgIcon('save', 14)} ${this.t.save}</button>`;
+        }
+        
         this.container.innerHTML = `
-            <div class="me-root" style="width:${this.cfg.width}; height:${this.cfg.height}; max-width:${this.cfg.maxWidth}; min-width:${this.cfg.minWidth}; max-height:${this.cfg.maxHeight}; min-height:${this.cfg.minHeight};">
+            <div class="me-root ${compactClass}" style="width:${this.cfg.width}; height:${this.cfg.height}; max-width:${this.cfg.maxWidth}; min-width:${this.cfg.minWidth}; max-height:${this.cfg.maxHeight}; min-height:${this.cfg.minHeight};">
                 <header class="me-toolbar">
                     <div class="me-toolbar-left" id="me-toggles"></div>
-                    <div class="me-toolbar-right">
-                        <div class="me-select" id="me-lang-sel">
-                            <div class="me-select-trigger">${this._svgIcon('globe', 14)} ${this.cfg.lang.toUpperCase()}</div>
-                            <div class="me-select-menu"></div>
-                        </div>
-                        <div class="me-select" id="me-theme-sel">
-                            <div class="me-select-trigger">${this._svgIcon('palette', 14)} ${this._capitalize(this.cfg.defaultStyle)}</div>
-                            <div class="me-select-menu"></div>
-                        </div>
-                        ${this.cfg.enableFullscreen ? `<button class="me-btn icon-only" id="me-fullscreen" title="Fullscreen">${this._svgIcon('maximize', 16)}</button>` : ''}
-                        <button class="me-btn icon-only" id="me-export" title="${this.t.export}">${this._svgIcon('download', 16)}</button>
-                        <button class="me-btn icon-only" id="me-import" title="${this.t.import}">${this._svgIcon('upload', 16)}</button>
-                        <input type="file" id="me-import-file" accept=".json" style="display:none;">
-                        <button class="me-btn primary" id="me-save-main">${this._svgIcon('save', 14)} ${this.t.save}</button>
-                    </div>
+                    <div class="me-toolbar-right">${toolbarRight}</div>
                 </header>
                 <div class="me-grid" id="me-grid"></div>
             </div>
         `;
         
-        const toggles = this.container.querySelector('#me-toggles');
-        this.activeTools.forEach(id => {
-            const btn = document.createElement('button');
-            btn.className = `me-btn ${this.currentWidgets.includes(id) ? 'active' : ''}`;
-            btn.dataset.widget = id;
-            btn.innerHTML = `${this._svgIcon(id, 14)} <span>${this._escapeHtml(this.t[id] || id)}</span>`;
-            btn.onclick = () => this._toggleWidget(id, btn);
-            toggles.appendChild(btn);
-        });
+        // Add widget toggle buttons
+        if (layout.showWidgetButtons) {
+            const toggles = this.container.querySelector('#me-toggles');
+            this.activeTools.forEach(id => {
+                const btn = document.createElement('button');
+                btn.className = `me-btn ${this.currentWidgets.includes(id) ? 'active' : ''}`;
+                btn.dataset.widget = id;
+                btn.innerHTML = `${this._svgIcon(id, 14)} <span>${this._escapeHtml(this.t[id] || id)}</span>`;
+                btn.onclick = () => this._toggleWidget(id, btn);
+                toggles.appendChild(btn);
+            });
+        }
 
-        // Save button
-        this.container.querySelector('#me-save-main').onclick = () => this.save();
+        // Save button handler
+        const saveBtn = this.container.querySelector('#me-save-main');
+        if (saveBtn) saveBtn.onclick = () => this.save();
         
-        // Export button
-        this.container.querySelector('#me-export').onclick = () => this.exportData();
+        // Export button handler
+        const exportBtn = this.container.querySelector('#me-export');
+        if (exportBtn) exportBtn.onclick = () => this.exportData();
         
-        // Import button & file input
+        // Import button & file input handlers
         const importBtn = this.container.querySelector('#me-import');
         const importFile = this.container.querySelector('#me-import-file');
-        importBtn.onclick = () => importFile.click();
-        importFile.onchange = (e) => this.importData(e.target.files[0]);
-        
-        // Fullscreen button
-        if (this.cfg.enableFullscreen) {
-            this.container.querySelector('#me-fullscreen').onclick = () => this.toggleFullscreen();
+        if (importBtn && importFile) {
+            importBtn.onclick = () => importFile.click();
+            importFile.onchange = (e) => this.importData(e.target.files[0]);
         }
+        
+        // Fullscreen button handler
+        const fullscreenBtn = this.container.querySelector('#me-fullscreen');
+        if (fullscreenBtn) fullscreenBtn.onclick = () => this.toggleFullscreen();
+        
+        // Custom button handlers
+        this._customToolbarButtons.forEach(b => {
+            const btn = this.container.querySelector(`#me-custom-${b.id}`);
+            if (btn && b.onClick) {
+                btn.onclick = () => b.onClick.call(this, btn);
+            }
+        });
     }
 
     _initCustomSelect() {
         // Theme selector
         const themeSel = this.container.querySelector('#me-theme-sel');
+        if (!themeSel) return; // Skip if theme selector is not rendered
+        
         const themeTrigger = themeSel.querySelector('.me-select-trigger');
         const themeMenu = themeSel.querySelector('.me-select-menu');
 
@@ -1170,39 +1324,38 @@ class MultiEditor {
         themeTrigger.onclick = (e) => { 
             e.stopPropagation(); 
             this._closeAllMenus();
+            this._positionDropdown(themeMenu, themeTrigger);
             themeMenu.classList.toggle('show'); 
         };
         
         // Language selector
         const langSel = this.container.querySelector('#me-lang-sel');
-        const langTrigger = langSel.querySelector('.me-select-trigger');
-        const langMenu = langSel.querySelector('.me-select-menu');
-        
-        const languages = [
-            { code: 'ja', name: '日本語' },
-            { code: 'en', name: 'English' },
-            { code: 'zh', name: '中文' }
-        ];
-        
-        languages.forEach(lang => {
-            const opt = document.createElement('div');
-            opt.className = `me-opt ${lang.code === this.cfg.lang ? 'active' : ''}`;
-            opt.innerText = lang.name;
-            opt.onclick = () => {
-                this.setLanguage(lang.code);
-                langTrigger.innerHTML = `${this._svgIcon('globe', 14)} ${lang.code.toUpperCase()}`;
-                langMenu.querySelectorAll('.me-opt').forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                langMenu.classList.remove('show');
+        if (langSel) {
+            const langTrigger = langSel.querySelector('.me-select-trigger');
+            const langMenu = langSel.querySelector('.me-select-menu');
+            
+            // Use registered languages
+            this._languages.forEach(lang => {
+                const opt = document.createElement('div');
+                opt.className = `me-opt ${lang.code === this.cfg.lang ? 'active' : ''}`;
+                opt.innerText = lang.name;
+                opt.onclick = () => {
+                    this.setLanguage(lang.code);
+                    langTrigger.innerHTML = `${this._svgIcon('globe', 14)} ${lang.code.toUpperCase()}`;
+                    langMenu.querySelectorAll('.me-opt').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    langMenu.classList.remove('show');
+                };
+                langMenu.appendChild(opt);
+            });
+            
+            langTrigger.onclick = (e) => {
+                e.stopPropagation();
+                this._closeAllMenus();
+                this._positionDropdown(langMenu, langTrigger);
+                langMenu.classList.toggle('show');
             };
-            langMenu.appendChild(opt);
-        });
-        
-        langTrigger.onclick = (e) => {
-            e.stopPropagation();
-            this._closeAllMenus();
-            langMenu.classList.toggle('show');
-        };
+        }
 
         // Close menus on outside click
         document.addEventListener('click', () => this._closeAllMenus());
@@ -1210,6 +1363,38 @@ class MultiEditor {
     
     _closeAllMenus() {
         this.container.querySelectorAll('.me-select-menu.show').forEach(m => m.classList.remove('show'));
+    }
+    
+    /**
+     * Position dropdown menu to stay within viewport
+     */
+    _positionDropdown(menu, trigger) {
+        // Reset position classes
+        menu.classList.remove('align-left', 'align-right', 'align-top');
+        
+        const triggerRect = trigger.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const menuWidth = 140; // menu width from CSS
+        const menuHeight = Math.min(200, menu.scrollHeight || 200); // max-height from CSS
+        
+        // Check horizontal position
+        if (triggerRect.right - menuWidth < 0) {
+            // Too close to left edge, align to left
+            menu.classList.add('align-left');
+        } else if (triggerRect.left + menuWidth > viewportWidth) {
+            // Too close to right edge, align to right
+            menu.classList.add('align-right');
+        } else {
+            // Default: align to right of trigger
+            menu.classList.add('align-right');
+        }
+        
+        // Check vertical position
+        if (triggerRect.bottom + menuHeight > viewportHeight && triggerRect.top - menuHeight > 0) {
+            // Not enough space below, but space above - open upward
+            menu.classList.add('align-top');
+        }
     }
     
     _capitalize(str) {
@@ -1270,6 +1455,18 @@ class MultiEditor {
             list: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
             quote: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></svg>`
         };
+        
+        // Check custom icons first
+        if (this._customIcons && this._customIcons[name]) {
+            const customSvg = this._customIcons[name];
+            // If it's already a complete SVG, return as-is
+            if (customSvg.includes('<svg')) {
+                return customSvg.replace(/width="[^"]*"/, `width="${size}"`).replace(/height="[^"]*"/, `height="${size}"`);
+            }
+            // Otherwise wrap in SVG tags
+            return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${customSvg}</svg>`;
+        }
+        
         return icons[name] || '';
     }
     
@@ -2624,6 +2821,129 @@ class MultiEditor {
         // Re-render framework to show new toggle button
         this._renderFramework();
         this._initCustomSelect();
+    }
+    
+    /**
+     * Add a new theme
+     * @param {string} name - Theme name
+     * @param {object} colors - Theme CSS variables
+     */
+    addTheme(name, colors) {
+        if (!this.themes.includes(name)) {
+            this.themes.push(name);
+        }
+        
+        // Add CSS for new theme
+        const themeCSS = `.me-root[data-theme="${name}"] {
+            --bg: ${colors.bg || '#ffffff'};
+            --card: ${colors.card || '#ffffff'};
+            --text: ${colors.text || '#1f2937'};
+            --text-muted: ${colors.textMuted || '#6b7280'};
+            --border: ${colors.border || '#e5e7eb'};
+            --accent: ${colors.accent || '#667eea'};
+            --accent-hover: ${colors.accentHover || '#5a67d8'};
+            --danger: ${colors.danger || '#ef4444'};
+            --success: ${colors.success || '#10b981'};
+            --warning: ${colors.warning || '#f59e0b'};
+            ${colors.blur ? `--blur: ${colors.blur};` : ''}
+            ${colors.customCSS || ''}
+        }`;
+        
+        // Add to existing style or create new
+        let styleEl = document.getElementById('me-custom-themes');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'me-custom-themes';
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent += themeCSS;
+        
+        this.emit('themeAdded', { name, colors });
+    }
+    
+    /**
+     * Add a new language
+     * @param {string} code - Language code (e.g., 'ko', 'es')
+     * @param {string} name - Display name (e.g., '한국어', 'Español')
+     * @param {object} translations - Translation dictionary
+     */
+    addLanguage(code, name, translations) {
+        // Add to i18n
+        this.i18n[code] = { ...this.i18n.en, ...translations };
+        
+        // Add to languages list
+        if (!this._languages.find(l => l.code === code)) {
+            this._languages.push({ code, name });
+        }
+        
+        this.emit('languageAdded', { code, name });
+    }
+    
+    /**
+     * Add a custom toolbar button
+     * @param {object} options - Button options
+     * @param {string} options.id - Unique button ID
+     * @param {string} options.icon - SVG icon name or custom HTML
+     * @param {string} options.title - Button tooltip
+     * @param {string} options.position - 'left' or 'right' (default: 'right')
+     * @param {function} options.onClick - Click handler
+     * @param {string} options.className - Additional CSS classes
+     */
+    addToolbarButton(options) {
+        const { id, icon, title, position = 'right', onClick, className = '' } = options;
+        
+        this._customToolbarButtons.push({ id, icon, title, position, onClick, className });
+        
+        // Re-render to show new button
+        this._renderFramework();
+        this._initCustomSelect();
+        
+        this.emit('toolbarButtonAdded', { id });
+    }
+    
+    /**
+     * Remove a toolbar button
+     * @param {string} id - Button ID to remove
+     */
+    removeToolbarButton(id) {
+        this._customToolbarButtons = this._customToolbarButtons.filter(b => b.id !== id);
+        this._renderFramework();
+        this._initCustomSelect();
+    }
+    
+    /**
+     * Update toolbar layout
+     * @param {object} layout - Layout options to update
+     */
+    setToolbarLayout(layout) {
+        this.cfg.toolbarLayout = { ...this.cfg.toolbarLayout, ...layout };
+        this._renderFramework();
+        this._initCustomSelect();
+    }
+    
+    /**
+     * Add a custom SVG icon
+     * @param {string} name - Icon name
+     * @param {string} svg - SVG content (without outer svg tags is fine, will be wrapped)
+     */
+    addIcon(name, svg) {
+        // Store in a custom icons map
+        if (!this._customIcons) this._customIcons = {};
+        this._customIcons[name] = svg;
+    }
+    
+    /**
+     * Get all registered languages
+     */
+    getLanguages() {
+        return [...this._languages];
+    }
+    
+    /**
+     * Get all registered themes
+     */
+    getThemes() {
+        return [...this.themes];
     }
     
     /**
