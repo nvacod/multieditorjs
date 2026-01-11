@@ -21,6 +21,11 @@ class MultiEditor {
     static VERSION = '3.0.0';
     static instances = new Map();
     
+    // Configuration constants
+    static TOAST_DURATION = 3000;      // Toast display duration in ms
+    static TOAST_FADE_DURATION = 300;  // Toast fade animation duration in ms
+    static SOUND_DURATION = 0.5;       // Notification sound duration in seconds
+    
     constructor(selector, config = {}) {
         this.id = 'me_' + Math.random().toString(36).substr(2, 9);
         this.container = document.querySelector(selector);
@@ -174,10 +179,15 @@ class MultiEditor {
     }
 
     _initStyles() {
-        // Remove existing style if present
+        // Only add styles once (shared across instances)
         const existingStyle = document.getElementById('me-styles');
-        if (existingStyle) existingStyle.remove();
+        if (existingStyle) {
+            // Styles already exist, increment reference count
+            MultiEditor._styleRefCount = (MultiEditor._styleRefCount || 1) + 1;
+            return;
+        }
         
+        MultiEditor._styleRefCount = 1;
         const s = document.createElement('style');
         s.id = 'me-styles';
         s.innerHTML = `
@@ -2285,6 +2295,7 @@ class MultiEditor {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
+            const duration = MultiEditor.SOUND_DURATION;
             
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
@@ -2294,8 +2305,15 @@ class MultiEditor {
             gainNode.gain.value = 0.3;
             
             oscillator.start();
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            oscillator.stop(audioContext.currentTime + 0.5);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.stop(audioContext.currentTime + duration);
+            
+            // Clean up audio resources after sound finishes
+            oscillator.onended = () => {
+                oscillator.disconnect();
+                gainNode.disconnect();
+                audioContext.close();
+            };
         } catch (e) {
             // Audio not supported
         }
@@ -2433,8 +2451,8 @@ class MultiEditor {
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(100px)';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+            setTimeout(() => toast.remove(), MultiEditor.TOAST_FADE_DURATION);
+        }, MultiEditor.TOAST_DURATION);
     }
     
     /**
@@ -2565,6 +2583,13 @@ class MultiEditor {
         
         // Remove from instances
         MultiEditor.instances.delete(this.id);
+        
+        // Clean up styles if this was the last instance
+        MultiEditor._styleRefCount = (MultiEditor._styleRefCount || 1) - 1;
+        if (MultiEditor._styleRefCount <= 0) {
+            const styleEl = document.getElementById('me-styles');
+            if (styleEl) styleEl.remove();
+        }
         
         this.emit('destroy', { id: this.id });
     }
