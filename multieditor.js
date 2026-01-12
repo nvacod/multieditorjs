@@ -68,6 +68,16 @@ class MultiEditor {
             enableDragDrop: true,
             enableFullscreen: true,
             enableNotifications: true,
+            // Display mode: 'grid' (default) or 'window' (free-floating windows)
+            displayMode: 'grid',
+            // Font size settings
+            fontSize: 14,
+            fontSizeMin: 10,
+            fontSizeMax: 24,
+            // Credit display
+            showCredit: true,
+            creditName: 'NvaCod',
+            creditUrl: '',
             data: { ...defaultData },
             plugins: [],
             onSave: null,
@@ -86,6 +96,9 @@ class MultiEditor {
                 this.cfg.data = { ...defaultData, ...saved.data };
                 if (saved.theme) this.cfg.defaultStyle = saved.theme;
                 if (saved.lang) this.cfg.lang = saved.lang;
+                if (saved.fontSize) this.cfg.fontSize = saved.fontSize;
+                if (saved.displayMode) this.cfg.displayMode = saved.displayMode;
+                if (saved.widgetPositions) this._widgetPositions = saved.widgetPositions;
                 // Only restore visible widgets that are still in activeTools
                 if (saved.widgets) {
                     this.currentWidgets = saved.widgets.filter(w => this.activeTools.includes(w));
@@ -108,6 +121,8 @@ class MultiEditor {
                 export: "エクスポート", import: "インポート", fullscreen: "全画面", settings: "設定",
                 work: "作業", break: "休憩", completed: "完了", minutes: "分", seconds: "秒",
                 prev: "前", next: "次", today: "今日", saved: "保存しました", confirm: "確認",
+                fontSize: "フォントサイズ", displayMode: "表示モード", gridMode: "グリッド", windowMode: "ウィンドウ",
+                close: "閉じる", minimize: "最小化", maximize: "最大化",
                 dows: ["日","月","火","水","木","金","土"],
                 months: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
             },
@@ -118,6 +133,8 @@ class MultiEditor {
                 export: "Export", import: "Import", fullscreen: "Fullscreen", settings: "Settings",
                 work: "Work", break: "Break", completed: "Completed", minutes: "min", seconds: "sec",
                 prev: "Prev", next: "Next", today: "Today", saved: "Saved!", confirm: "Confirm",
+                fontSize: "Font Size", displayMode: "Display Mode", gridMode: "Grid", windowMode: "Window",
+                close: "Close", minimize: "Minimize", maximize: "Maximize",
                 dows: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
                 months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
             },
@@ -128,6 +145,8 @@ class MultiEditor {
                 export: "导出", import: "导入", fullscreen: "全屏", settings: "设置",
                 work: "工作", break: "休息", completed: "完成", minutes: "分", seconds: "秒",
                 prev: "上一", next: "下一", today: "今天", saved: "已保存", confirm: "确认",
+                fontSize: "字体大小", displayMode: "显示模式", gridMode: "网格", windowMode: "窗口",
+                close: "关闭", minimize: "最小化", maximize: "最大化",
                 dows: ["日","一","二","三","四","五","六"],
                 months: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
             }
@@ -1189,6 +1208,225 @@ class MultiEditor {
                 .me-toolbar, .me-widget-h-actions { display: none !important; }
                 .me-root { box-shadow: none; border: none; }
             }
+
+            /* ========================================
+               Window Mode (Floating Windows)
+            ======================================== */
+            .me-root.window-mode .me-grid {
+                display: block;
+                position: relative;
+                background: var(--bg);
+                padding: 10px;
+            }
+            .me-root.window-mode .me-widget {
+                position: absolute;
+                min-width: 280px;
+                min-height: 200px;
+                box-shadow: var(--me-shadow-lg);
+                border: 1px solid var(--border);
+                border-radius: var(--me-radius);
+                resize: both;
+                overflow: auto;
+                z-index: 10;
+            }
+            .me-root.window-mode .me-widget.active {
+                z-index: 100;
+                box-shadow: 0 25px 60px -12px rgba(0,0,0,0.35);
+            }
+            .me-root.window-mode .me-widget-h {
+                cursor: move;
+            }
+            .me-root.window-mode .me-widget.minimized {
+                min-height: auto;
+                height: auto !important;
+            }
+            .me-root.window-mode .me-widget.minimized .me-widget-b {
+                display: none;
+            }
+            .me-root.window-mode .me-widget.maximized {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                border-radius: 0;
+                z-index: 1000;
+            }
+            
+            /* Window mode header actions */
+            .me-widget-h-btn.minimize-btn,
+            .me-widget-h-btn.maximize-btn {
+                display: none;
+            }
+            .me-root.window-mode .me-widget-h-btn.minimize-btn,
+            .me-root.window-mode .me-widget-h-btn.maximize-btn {
+                display: flex;
+            }
+            
+            /* Resize handle */
+            .me-root.window-mode .me-widget::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 16px;
+                height: 16px;
+                cursor: nwse-resize;
+                background: linear-gradient(135deg, transparent 50%, var(--border) 50%);
+                border-radius: 0 0 var(--me-radius) 0;
+            }
+
+            /* ========================================
+               Settings Panel
+            ======================================== */
+            .me-settings-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: me-fadeIn 0.2s ease;
+            }
+            .me-settings-panel {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--me-radius-lg);
+                box-shadow: var(--me-shadow-lg);
+                width: 90%;
+                max-width: 400px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            .me-settings-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: 700;
+                font-size: 16px;
+            }
+            .me-settings-close {
+                width: 28px;
+                height: 28px;
+                border: none;
+                background: transparent;
+                color: var(--text-muted);
+                cursor: pointer;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: var(--me-transition);
+            }
+            .me-settings-close:hover {
+                background: var(--danger);
+                color: #fff;
+            }
+            .me-settings-body {
+                padding: 20px;
+            }
+            .me-settings-group {
+                margin-bottom: 20px;
+            }
+            .me-settings-label {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+                display: block;
+            }
+            .me-settings-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .me-settings-slider {
+                flex: 1;
+                height: 6px;
+                -webkit-appearance: none;
+                background: var(--border);
+                border-radius: 3px;
+                outline: none;
+            }
+            .me-settings-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: var(--accent);
+                cursor: pointer;
+                transition: var(--me-transition);
+            }
+            .me-settings-slider::-webkit-slider-thumb:hover {
+                transform: scale(1.2);
+            }
+            .me-settings-value {
+                min-width: 40px;
+                text-align: center;
+                font-weight: 600;
+                font-size: 14px;
+            }
+            .me-settings-toggle {
+                display: flex;
+                gap: 8px;
+            }
+            .me-settings-toggle-btn {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid var(--border);
+                background: var(--bg);
+                color: var(--text);
+                border-radius: var(--me-radius-sm);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                transition: var(--me-transition);
+            }
+            .me-settings-toggle-btn.active {
+                background: var(--accent);
+                color: #fff;
+                border-color: var(--accent);
+            }
+
+            /* ========================================
+               Credit Footer
+            ======================================== */
+            .me-credit {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 8px 16px;
+                background: linear-gradient(to top, rgba(0,0,0,0.1), transparent);
+                text-align: center;
+                font-size: 11px;
+                color: var(--text-muted);
+                pointer-events: none;
+                z-index: 5;
+            }
+            .me-credit a {
+                color: var(--accent);
+                text-decoration: none;
+                pointer-events: auto;
+                font-weight: 600;
+            }
+            .me-credit a:hover {
+                text-decoration: underline;
+            }
+            .me-credit-icon {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                vertical-align: middle;
+            }
         `;
         document.head.appendChild(s);
     }
@@ -1243,17 +1481,34 @@ class MultiEditor {
                 toolbarRight += `<button class="me-btn icon-only ${b.className}" id="me-custom-${b.id}" title="${b.title}">${this._svgIcon(b.icon, 14) || b.icon}</button>`;
             });
         
+        // Settings button
+        toolbarRight += `<button class="me-btn icon-only" id="me-settings-btn" title="${this.t.settings}">${this._svgIcon('settings', 16)}</button>`;
+        
         if (layout.showSaveButton) {
             toolbarRight += `<button class="me-btn primary" id="me-save-main">${this._svgIcon('save', 14)} ${this.t.save}</button>`;
         }
         
+        // Credit display
+        const creditHtml = this.cfg.showCredit ? `
+            <div class="me-credit">
+                <span class="me-credit-icon">
+                    ${this._svgIcon('code', 12)}
+                    Powered by ${this.cfg.creditUrl ? `<a href="${this._escapeHtml(this.cfg.creditUrl)}" target="_blank">${this._escapeHtml(this.cfg.creditName)}</a>` : `<span style="font-weight:600;">${this._escapeHtml(this.cfg.creditName)}</span>`}
+                </span>
+            </div>
+        ` : '';
+        
+        // Window mode class
+        const windowModeClass = this.cfg.displayMode === 'window' ? 'window-mode' : '';
+        
         this.container.innerHTML = `
-            <div class="me-root ${compactClass}" style="width:${this.cfg.width}; height:${this.cfg.height}; max-width:${this.cfg.maxWidth}; min-width:${this.cfg.minWidth}; max-height:${this.cfg.maxHeight}; min-height:${this.cfg.minHeight};">
+            <div class="me-root ${compactClass} ${windowModeClass}" style="width:${this.cfg.width}; height:${this.cfg.height}; max-width:${this.cfg.maxWidth}; min-width:${this.cfg.minWidth}; max-height:${this.cfg.maxHeight}; min-height:${this.cfg.minHeight}; font-size:${this.cfg.fontSize}px;">
                 <header class="me-toolbar">
                     <div class="me-toolbar-left" id="me-toggles"></div>
                     <div class="me-toolbar-right">${toolbarRight}</div>
                 </header>
                 <div class="me-grid" id="me-grid"></div>
+                ${creditHtml}
             </div>
         `;
         
@@ -1290,6 +1545,10 @@ class MultiEditor {
         const fullscreenBtn = this.container.querySelector('#me-fullscreen');
         if (fullscreenBtn) fullscreenBtn.onclick = () => this.toggleFullscreen();
         
+        // Settings button handler
+        const settingsBtn = this.container.querySelector('#me-settings-btn');
+        if (settingsBtn) settingsBtn.onclick = () => this.openSettings();
+        
         // Custom button handlers
         this._customToolbarButtons.forEach(b => {
             const btn = this.container.querySelector(`#me-custom-${b.id}`);
@@ -1297,6 +1556,9 @@ class MultiEditor {
                 btn.onclick = () => b.onClick.call(this, btn);
             }
         });
+        
+        // Apply initial font size
+        this._applyFontSize(this.cfg.fontSize);
     }
 
     _initCustomSelect() {
@@ -1453,7 +1715,13 @@ class MultiEditor {
             link: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
             code: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
             list: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
-            quote: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></svg>`
+            quote: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></svg>`,
+            
+            // Settings & window control icons
+            settings: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+            minimize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+            windowMaximize: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>`,
+            windowRestore: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="14" rx="2" ry="2"/><path d="M9 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2"/></svg>`
         };
         
         // Check custom icons first
@@ -1535,6 +1803,9 @@ class MultiEditor {
                 theme: this.cfg.defaultStyle,
                 widgets: this.currentWidgets,
                 lang: this.cfg.lang,
+                fontSize: this.cfg.fontSize,
+                displayMode: this.cfg.displayMode,
+                widgetPositions: this._widgetPositions || {},
                 timestamp: Date.now()
             };
             localStorage.setItem(this.cfg.storageKey, JSON.stringify(saveData));
@@ -1581,6 +1852,7 @@ class MultiEditor {
             const w = document.createElement('div');
             w.className = 'me-widget';
             w.dataset.widgetId = id;
+            w.dataset.id = id;
             w.dataset.index = index;
             
             // Drag and drop attributes
@@ -1598,7 +1870,9 @@ class MultiEditor {
                 <div class="me-widget-h">
                     <span>${this._svgIcon(id, 14)} ${this._escapeHtml(this.t[id] || id)}</span>
                     <div class="me-widget-h-actions">
-                        <button class="me-widget-h-btn" data-action="close" title="Close">${this._svgIcon('close', 14)}</button>
+                        <button class="me-widget-h-btn minimize-btn" data-action="minimize" title="${this.t.minimize}">${this._svgIcon('minimize', 14)}</button>
+                        <button class="me-widget-h-btn maximize-btn" data-action="maximize" title="${this.t.maximize}">${this._svgIcon('windowMaximize', 14)}</button>
+                        <button class="me-widget-h-btn" data-action="close" title="${this.t.close}">${this._svgIcon('close', 14)}</button>
                     </div>
                 </div>
                 <div class="me-widget-b" id="b-${id}"></div>
@@ -1611,9 +1885,26 @@ class MultiEditor {
                 if (btn) this._toggleWidget(id, btn);
             };
             
+            // Minimize button handler (window mode)
+            w.querySelector('[data-action="minimize"]').onclick = (e) => {
+                e.stopPropagation();
+                this.minimizeWidget(id);
+            };
+            
+            // Maximize button handler (window mode)
+            w.querySelector('[data-action="maximize"]').onclick = (e) => {
+                e.stopPropagation();
+                this.maximizeWidget(id);
+            };
+            
             grid.appendChild(w);
             this._drawWidgetContent(id);
         });
+        
+        // Initialize window mode if active
+        if (this.cfg.displayMode === 'window') {
+            this._initWindowMode();
+        }
     }
     
     // Drag and Drop handlers
@@ -2684,6 +2975,266 @@ class MultiEditor {
         const root = this.container.querySelector('.me-root');
         root.classList.toggle('fullscreen');
         this.emit('fullscreenToggle', { fullscreen: root.classList.contains('fullscreen') });
+    }
+    
+    /**
+     * Open settings panel
+     */
+    openSettings() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'me-settings-overlay';
+        overlay.onclick = (e) => {
+            if (e.target === overlay) this.closeSettings();
+        };
+        
+        overlay.innerHTML = `
+            <div class="me-settings-panel">
+                <div class="me-settings-header">
+                    <span>${this._svgIcon('settings', 18)} ${this.t.settings}</span>
+                    <button class="me-settings-close" id="me-settings-close">${this._svgIcon('close', 16)}</button>
+                </div>
+                <div class="me-settings-body">
+                    <div class="me-settings-group">
+                        <label class="me-settings-label">${this.t.fontSize}</label>
+                        <div class="me-settings-row">
+                            <span>A</span>
+                            <input type="range" class="me-settings-slider" id="me-font-slider" 
+                                   min="${this.cfg.fontSizeMin}" max="${this.cfg.fontSizeMax}" value="${this.cfg.fontSize}">
+                            <span style="font-size:1.4em;">A</span>
+                            <span class="me-settings-value" id="me-font-value">${this.cfg.fontSize}px</span>
+                        </div>
+                    </div>
+                    <div class="me-settings-group">
+                        <label class="me-settings-label">${this.t.displayMode}</label>
+                        <div class="me-settings-toggle">
+                            <button class="me-settings-toggle-btn ${this.cfg.displayMode === 'grid' ? 'active' : ''}" data-mode="grid">
+                                ${this._svgIcon('calendar', 14)} ${this.t.gridMode}
+                            </button>
+                            <button class="me-settings-toggle-btn ${this.cfg.displayMode === 'window' ? 'active' : ''}" data-mode="window">
+                                ${this._svgIcon('windowMaximize', 14)} ${this.t.windowMode}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        this._settingsOverlay = overlay;
+        
+        // Close button
+        overlay.querySelector('#me-settings-close').onclick = () => this.closeSettings();
+        
+        // Font size slider
+        const fontSlider = overlay.querySelector('#me-font-slider');
+        const fontValue = overlay.querySelector('#me-font-value');
+        fontSlider.oninput = () => {
+            const size = parseInt(fontSlider.value);
+            fontValue.textContent = size + 'px';
+            this.setFontSize(size);
+        };
+        
+        // Display mode toggle
+        overlay.querySelectorAll('.me-settings-toggle-btn').forEach(btn => {
+            btn.onclick = () => {
+                const mode = btn.dataset.mode;
+                overlay.querySelectorAll('.me-settings-toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.setDisplayMode(mode);
+            };
+        });
+        
+        this.emit('settingsOpen');
+    }
+    
+    /**
+     * Close settings panel
+     */
+    closeSettings() {
+        if (this._settingsOverlay) {
+            this._settingsOverlay.remove();
+            this._settingsOverlay = null;
+            this.emit('settingsClose');
+        }
+    }
+    
+    /**
+     * Set font size
+     */
+    setFontSize(size) {
+        size = Math.max(this.cfg.fontSizeMin, Math.min(this.cfg.fontSizeMax, size));
+        this.cfg.fontSize = size;
+        this._applyFontSize(size);
+        this._saveToStorage();
+        this.emit('fontSizeChange', { fontSize: size });
+    }
+    
+    /**
+     * Apply font size to root
+     */
+    _applyFontSize(size) {
+        const root = this.container.querySelector('.me-root');
+        if (root) {
+            root.style.fontSize = size + 'px';
+        }
+    }
+    
+    /**
+     * Set display mode
+     */
+    setDisplayMode(mode) {
+        if (mode !== 'grid' && mode !== 'window') return;
+        
+        this.cfg.displayMode = mode;
+        const root = this.container.querySelector('.me-root');
+        
+        if (mode === 'window') {
+            root.classList.add('window-mode');
+            this._initWindowMode();
+        } else {
+            root.classList.remove('window-mode');
+            // Reset any window positioning
+            this.container.querySelectorAll('.me-widget').forEach(w => {
+                w.style.position = '';
+                w.style.left = '';
+                w.style.top = '';
+                w.style.width = '';
+                w.style.height = '';
+                w.classList.remove('minimized', 'maximized', 'active');
+            });
+        }
+        
+        this._saveToStorage();
+        this.emit('displayModeChange', { mode });
+    }
+    
+    /**
+     * Initialize window mode for widgets
+     */
+    _initWindowMode() {
+        const grid = this.container.querySelector('#me-grid');
+        const widgets = grid.querySelectorAll('.me-widget');
+        const gridRect = grid.getBoundingClientRect();
+        
+        let offsetX = 20;
+        let offsetY = 20;
+        
+        widgets.forEach((widget, index) => {
+            // Restore saved position or set cascade
+            const savedPos = this._widgetPositions?.[widget.dataset.id];
+            
+            if (savedPos) {
+                widget.style.left = savedPos.left;
+                widget.style.top = savedPos.top;
+                widget.style.width = savedPos.width;
+                widget.style.height = savedPos.height;
+            } else {
+                widget.style.left = offsetX + 'px';
+                widget.style.top = offsetY + 'px';
+                widget.style.width = '350px';
+                widget.style.height = '300px';
+                
+                offsetX += 30;
+                offsetY += 30;
+                
+                // Reset if too far right/down
+                if (offsetX > gridRect.width - 200) offsetX = 20;
+                if (offsetY > gridRect.height - 150) offsetY = 20;
+            }
+            
+            // Make draggable
+            this._makeWidgetDraggable(widget);
+            
+            // Bring to front on click
+            widget.onclick = (e) => {
+                if (!e.target.closest('.me-widget-h-btn')) {
+                    widgets.forEach(w => w.classList.remove('active'));
+                    widget.classList.add('active');
+                }
+            };
+        });
+    }
+    
+    /**
+     * Make widget draggable in window mode
+     */
+    _makeWidgetDraggable(widget) {
+        const header = widget.querySelector('.me-widget-h');
+        if (!header) return;
+        
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+        
+        header.onmousedown = (e) => {
+            if (e.target.closest('.me-widget-h-btn')) return;
+            
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = widget.offsetLeft;
+            initialTop = widget.offsetTop;
+            
+            widget.classList.add('active');
+            
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                widget.style.left = (initialLeft + dx) + 'px';
+                widget.style.top = (initialTop + dy) + 'px';
+            };
+            
+            const onMouseUp = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                this._saveWidgetPosition(widget);
+            };
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        };
+    }
+    
+    /**
+     * Save widget position
+     */
+    _saveWidgetPosition(widget) {
+        if (!this._widgetPositions) this._widgetPositions = {};
+        
+        this._widgetPositions[widget.dataset.id] = {
+            left: widget.style.left,
+            top: widget.style.top,
+            width: widget.style.width,
+            height: widget.style.height
+        };
+        
+        this._saveToStorage();
+    }
+    
+    /**
+     * Minimize widget (window mode only)
+     */
+    minimizeWidget(widgetId) {
+        const widget = this.container.querySelector(`.me-widget[data-id="${widgetId}"]`);
+        if (widget) {
+            widget.classList.toggle('minimized');
+            widget.classList.remove('maximized');
+        }
+    }
+    
+    /**
+     * Maximize widget (window mode only)
+     */
+    maximizeWidget(widgetId) {
+        const widget = this.container.querySelector(`.me-widget[data-id="${widgetId}"]`);
+        if (widget) {
+            widget.classList.toggle('maximized');
+            widget.classList.remove('minimized');
+        }
     }
     
     /**
