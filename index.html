@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MultiEditor.js - Ultimate Professional Modular Workspace">
+    <meta name="author" content="MultiEditor">
+    <title>MultiEditor.js - Ultimate Professional Modular Workspace</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px 20px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 10px 5px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Main Container */
+        .main-container {
+            flex: 1;
+            padding: 0 20px 30px;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        #editor-container {
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+        
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding: 0 20px 30px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            transition: transform 0.3s, background 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .feature-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .feature-desc {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* Documentation Section */
+        .docs {
+            background: rgba(0,0,0,0.2);
+            padding: 40px 20px;
+            margin-top: 20px;
+        }
+        
+        .docs-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            color: white;
+        }
+        
+        .docs h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .docs h3 {
+            font-size: 1.2rem;
+            margin: 25px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .docs pre {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        
+        .docs code {
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9em;
+        }
+        
+        .docs p {
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        
+        .docs ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .docs li {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+        
+        .docs table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .docs th, .docs td {
+            padding: 10px 15px;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .docs th {
+            background: rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 15px 15px;
+            }
+            
+            .main-container {
+                padding: 0 10px 20px;
+            }
+            
+            #editor-container {
+                height: calc(100vh - 150px);
+                min-height: 400px;
+            }
+            
+            .docs pre {
+                font-size: 0.8rem;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>📝 MultiEditor.js</h1>
+        <p>Ultimate Professional Modular Workspace - 最高性能の多機能エディタ</p>
+        <div>
+            <span class="badge">v5.0.0</span>
+            <span class="badge">10+ Widgets</span>
+            <span class="badge">15+ Themes</span>
+            <span class="badge">3 Languages</span>
+        </div>
+    </header>
+    
+    <!-- Main Editor Container -->
+    <main class="main-container">
+        <div id="editor-container"></div>
+    </main>
+    
+    <!-- Features Grid -->
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <div class="feature-title">Calendar</div>
+            <div class="feature-desc">Full navigation with events</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📝</div>
+            <div class="feature-title">Code Editor</div>
+            <div class="feature-desc">Line numbers & syntax</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✅</div>
+            <div class="feature-title">Todo List</div>
+            <div class="feature-desc">Tasks with completion</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🕐</div>
+            <div class="feature-title">World Clock</div>
+            <div class="feature-desc">Any timezone support</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⏱️</div>
+            <div class="feature-title">Timer & Stopwatch</div>
+            <div class="feature-desc">Countdown & time tracking</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🍅</div>
+            <div class="feature-title">Pomodoro</div>
+            <div class="feature-desc">Focus timer technique</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔢</div>
+            <div class="feature-title">Calculator</div>
+            <div class="feature-desc">Full featured calc</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📄</div>
+            <div class="feature-title">Markdown</div>
+            <div class="feature-desc">Live preview editor</div>
+        </div>
+    </section>
+    
+    <!-- Documentation Section -->
+    <section class="docs">
+        <div class="docs-container">
+            <h2>📚 Documentation</h2>
+            
+            <h3>🚀 Quick Start</h3>
+            <pre><code>&lt;!-- Include the script --&gt;
+&lt;script src="multieditor.js"&gt;&lt;/script&gt;
+
+&lt;!-- Create container --&gt;
+&lt;div id="editor"&gt;&lt;/div&gt;
+
+&lt;!-- Initialize --&gt;
+&lt;script&gt;
+const editor = new MultiEditor('#editor');
+&lt;/script&gt;</code></pre>
+            
+            <h3>⚙️ Configuration Options</h3>
+            <pre><code>const editor = new MultiEditor('#editor', {
+    // Dimensions
+    width: '100%',
+    height: '800px',
+    minWidth: '320px',
+    maxWidth: '100%',
+    
+    // Theme: slate, indigo, rose, emerald, amber, sky, 
+    //        dark, midnight, glass, neon, sunset, ocean,
+    //        forest, lavender, copper
+    defaultStyle: 'slate',
+    
+    // Language: 'ja', 'en', 'zh'
+    lang: 'ja',
+    
+    // Widgets to show
+    allowTool: ['calendar', 'editor', 'todo', 'clock', 'memo', 
+                'timer', 'stopwatch', 'calculator', 'pomodoro', 'markdown'],
+    
+    // Widgets to disable
+    disableTool: [],
+    
+    // Timezone for clock
+    timezone: 'Asia/Tokyo',
+    
+    // Auto-save to localStorage
+    autoSave: true,
+    autoSaveInterval: 30000,  // 30 seconds
+    storageKey: 'multieditor_data',
+    
+    // Features
+    enableShortcuts: true,    // Ctrl+S, Ctrl+E, Escape
+    enableDragDrop: true,     // Reorder widgets
+    enableFullscreen: true,   // Fullscreen button
+    enableNotifications: true, // Sound notifications
+    
+    // Display mode: 'grid' or 'window'
+    displayMode: 'grid',
+    
+    // Font size settings
+    fontSize: 14,
+    fontSizeMin: 10,
+    fontSizeMax: 24,
+    
+    // Credit display
+    showCredit: true,
+    
+    // Callbacks
+    onSave: (data) => console.log('Saved:', data),
+    onChange: (change) => console.log('Changed:', change),
+    onThemeChange: (theme) => console.log('Theme:', theme)
+});</code></pre>
+            
+            <h3>📦 Available Widgets</h3>
+            <table>
+                <tr>
+                    <th>Widget ID</th>
+                    <th>Description</th>
+                    <th>Features</th>
+                </tr>
+                <tr>
+                    <td><code>calendar</code></td>
+                    <td>Interactive Calendar</td>
+                    <td>Month/year navigation, event notes, date selection</td>
+                </tr>
+                <tr>
+                    <td><code>editor</code></td>
+                    <td>Code Editor</td>
+                    <td>Line numbers, tab support, monospace font</td>
+                </tr>
+                <tr>
+                    <td><code>todo</code></td>
+                    <td>Task Manager</td>
+                    <td>Add/delete tasks, completion toggle</td>
+                </tr>
+                <tr>
+                    <td><code>clock</code></td>
+                    <td>World Clock</td>
+                    <td>Live time, date display, timezone support</td>
+                </tr>
+                <tr>
+                    <td><code>memo</code></td>
+                    <td>Quick Notes</td>
+                    <td>Simple text area for notes</td>
+                </tr>
+                <tr>
+                    <td><code>timer</code></td>
+                    <td>Countdown Timer</td>
+                    <td>Set hours/minutes/seconds, notifications</td>
+                </tr>
+                <tr>
+                    <td><code>stopwatch</code></td>
+                    <td>Stopwatch</td>
+                    <td>Millisecond precision, pause/resume</td>
+                </tr>
+                <tr>
+                    <td><code>calculator</code></td>
+                    <td>Calculator</td>
+                    <td>Basic operations, percentage, backspace</td>
+                </tr>
+                <tr>
+                    <td><code>pomodoro</code></td>
+                    <td>Pomodoro Timer</td>
+                    <td>Work/break cycles, customizable durations</td>
+                </tr>
+                <tr>
+                    <td><code>markdown</code></td>
+                    <td>Markdown Editor</td>
+                    <td>Live preview, toolbar, syntax support</td>
+                </tr>
+            </table>
+            
+            <h3>🎯 API Methods</h3>
+            <pre><code>// Save data
+editor.save();
+
+// Export as JSON file
+editor.exportData();
+
+// Import from file
+editor.importData(file);
+
+// Toggle fullscreen
+editor.toggleFullscreen();
+
+// Get/Set data
+const data = editor.getData();
+editor.setData({ notes: 'Hello World!' });
+
+// Theme & Language
+editor.setTheme('dark');
+editor.setLanguage('en');
+
+// Show specific widgets
+editor.showWidgets(['calendar', 'todo', 'clock']);
+
+// Toast notifications
+editor.toast('Hello!', 'success'); // success, warning, error, info
+
+// Event listeners
+const unsubscribe = editor.on('change', (data) => {
+    console.log('Data changed:', data);
+});
+unsubscribe(); // Remove listener
+
+// Settings panel
+editor.openSettings();
+editor.closeSettings();
+
+// Font size
+editor.setFontSize(16);
+
+// Display mode
+editor.setDisplayMode('window'); // 'grid' or 'window'
+
+// Destroy instance
+editor.destroy();</code></pre>
+
+            <h3>🪟 Window Mode</h3>
+            <p>Window mode allows widgets to be used like desktop windows:</p>
+            <ul>
+                <li><strong>Drag to move</strong> - Click and drag the title bar to reposition</li>
+                <li><strong>Resize</strong> - Drag widget edges/corners to resize</li>
+                <li><strong>Minimize</strong> - Collapse widget to title bar only</li>
+                <li><strong>Maximize</strong> - Expand widget to fill the container</li>
+                <li><strong>Position persistence</strong> - Positions are saved to localStorage</li>
+            </ul>
+            <pre><code>// Enable window mode via config
+const editor = new MultiEditor('#editor', {
+    displayMode: 'window'
+});
+
+// Or toggle dynamically
+editor.setDisplayMode('window');
+editor.setDisplayMode('grid');
+
+// Minimize/maximize specific widget
+editor.minimizeWidget('calendar');
+editor.maximizeWidget('calendar');</code></pre>
+            
+            <h3>🔌 Plugin System</h3>
+            <pre><code>// Create a plugin
+const myPlugin = {
+    init(editor) {
+        console.log('Plugin initialized!');
+        
+        // Listen to events
+        editor.on('save', (data) => {
+            console.log('Data saved:', data);
+        });
+        
+        // Add custom widget
+        editor.addWidget('weather', 'Weather', function(container) {
+            container.innerHTML = '&lt;div style="padding:20px;"&gt;🌤️ Weather Widget&lt;/div&gt;';
+        });
+        
+        // Add custom theme
+        editor.addTheme('sakura', {
+            bg: '#fff5f5',
+            card: '#ffffff',
+            text: '#4a4a4a',
+            textMuted: '#9f9f9f',
+            border: '#ffcccc',
+            accent: '#ff69b4',
+            accentHover: '#ff1493',
+            danger: '#dc143c',
+            success: '#32cd32',
+            warning: '#ffa500'
+        });
+        
+        // Add custom language
+        editor.addLanguage('ko', '한국어', {
+            calendar: "캘린더",
+            editor: "에디터",
+            todo: "할일",
+            clock: "시계",
+            save: "저장",
+            // ... more translations
+        });
+        
+        // Add custom toolbar button
+        editor.addToolbarButton({
+            id: 'help',
+            icon: 'close', // or custom SVG HTML
+            title: 'Help',
+            position: 'right',
+            onClick: function() {
+                alert('Help clicked!');
+            }
+        });
+    }
+};
+
+// Use plugin
+const editor = new MultiEditor('#editor', {
+    plugins: [myPlugin]
+});
+
+// Or register later
+editor.registerPlugin(myPlugin);</code></pre>
+
+            <h3>🛠️ Toolbar Customization</h3>
+            <pre><code>// Customize toolbar layout
+const editor = new MultiEditor('#editor', {
+    toolbarLayout: {
+        showWidgetButtons: true,
+        showLanguageSelector: true,
+        showThemeSelector: true,
+        showFullscreenButton: true,
+        showExportButton: true,
+        showImportButton: true,
+        showSaveButton: true,
+        showSettingsButton: true,
+        compactMode: false  // Set true to hide button text labels
+    }
+});
+
+// Update layout dynamically
+editor.setToolbarLayout({
+    showExportButton: false,
+    compactMode: true
+});
+
+// Add custom icon
+editor.addIcon('custom', '&lt;circle cx="12" cy="12" r="10"/&gt;');
+
+// Get available themes/languages
+const themes = editor.getThemes();
+const languages = editor.getLanguages();</code></pre>
+            
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <ul>
+                <li><code>Ctrl/Cmd + S</code> - Save data</li>
+                <li><code>Ctrl/Cmd + E</code> - Export data</li>
+                <li><code>Escape</code> - Exit fullscreen mode</li>
+                <li><code>Tab</code> - Insert 4 spaces (in code editor)</li>
+            </ul>
+            
+            <h3>🎨 Theme Examples</h3>
+            <pre><code>// Light themes
+editor.setTheme('slate');    // Gray tones
+editor.setTheme('indigo');   // Purple/blue
+editor.setTheme('rose');     // Pink/red
+editor.setTheme('emerald');  // Green
+editor.setTheme('amber');    // Orange/yellow
+editor.setTheme('sky');      // Blue
+editor.setTheme('lavender'); // Light purple
+editor.setTheme('copper');   // Warm brown
+
+// Dark themes
+editor.setTheme('dark');     // Dark blue
+editor.setTheme('midnight'); // Deep dark
+editor.setTheme('neon');     // Green on black
+editor.setTheme('forest');   // Dark green
+
+// Gradient/Glass themes
+editor.setTheme('glass');    // Purple gradient with blur
+editor.setTheme('sunset');   // Pink/orange gradient
+editor.setTheme('ocean');    // Blue gradient</code></pre>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>MultiEditor.js v3.0.0 | MIT License</p>
+        <p>Built with ❤️ for productivity</p>
+    </footer>
+    
+    <!-- MultiEditor Script -->
+    <script src="multieditor.js"></script>
+    <script>
+        // Initialize MultiEditor with all features
+        const editor = new MultiEditor('#editor-container', {
+            // Full height within container
+            height: '100%',
+            
+            // Default theme
+            defaultStyle: 'slate',
+            
+            // Language
+            lang: 'ja',
+            
+            // All widgets enabled
+            allowTool: ['calendar', 'editor', 'todo', 'clock', 'memo', 'timer', 'stopwatch', 'calculator', 'pomodoro', 'markdown'],
+            
+            // Show only some widgets initially for better layout
+            // Users can toggle others via toolbar
+            disableTool: [],
+            
+            // Features
+            enableShortcuts: true,
+            enableDragDrop: true,
+            enableFullscreen: true,
+            enableNotifications: true,
+            
+            // Display mode: 'grid' or 'window'
+            displayMode: 'grid',
+            
+            // Font size
+            fontSize: 14,
+            fontSizeMin: 10,
+            fontSizeMax: 24,
+            
+            // Credit
+            showCredit: true,
+            
+            // Auto-save
+            autoSave: true,
+            autoSaveInterval: 30000,
+            
+            // Event handlers
+            onSave: (data) => {
+                console.log('📁 Data saved:', data);
+            },
+            onChange: (change) => {
+                console.log('✏️ Change detected:', change);
+            },
+            onThemeChange: (theme) => {
+                console.log('🎨 Theme changed to:', theme);
+            }
+        });
+        
+        // Show only 5 widgets initially for better UX
+        editor.showWidgets(['calendar', 'editor', 'todo', 'clock', 'memo']);
+        
+        // Log when ready
+        editor.on('ready', () => {
+            console.log('🚀 MultiEditor is ready!');
+        });
+        
+        // Make editor globally accessible for debugging
+        window.editor = editor;
+        
+        console.log('%c📝 MultiEditor.js v3.0.0', 'font-size: 20px; font-weight: bold; color: #667eea;');
+        console.log('%cType "editor" in console to access the instance', 'color: #666;');
+        console.log('%c💡 Try: editor.setDisplayMode("window") for window mode', 'color: #10b981;');
+    </script>
+</body>
+</html>
