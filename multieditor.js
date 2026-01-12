@@ -77,7 +77,7 @@ class MultiEditor {
             // Credit display
             showCredit: true,
             creditName: 'NvaCod',
-            creditUrl: '',
+            creditUrl: 'https://github.com/nvacod/multieditorjs/',
             data: { ...defaultData },
             plugins: [],
             onSave: null,
@@ -1515,7 +1515,7 @@ class MultiEditor {
             <div class="me-credit">
                 <span class="me-credit-icon">
                     ${this._svgIcon('code', 12)}
-                    Powered by ${this.cfg.creditUrl ? `<a href="${this._escapeHtml(this.cfg.creditUrl)}" target="_blank">NvaCod</a>` : `<span style="font-weight:600;">NvaCod</span>`}
+                    Powered by <a href="https://github.com/nvacod/multieditorjs/" target="_blank">NvaCod</a>
                 </span>
             </div>
         ` : '';
