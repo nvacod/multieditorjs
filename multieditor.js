@@ -1,6 +1,6 @@
 /**
  * multieditor.js - Ultimate Professional Modular Workspace
- * Version: 6.0.0 (Production Ready - Premium Edition)
+ * Version: 1.0.0 (Production Ready - Premium Edition)
  * 
  * Features:
  * - 10+ Widgets: Calendar, Editor, Todo, Clock, Memo, Timer, Stopwatch, Calculator, Pomodoro, Markdown
@@ -18,7 +18,7 @@
  */
 
 class MultiEditor {
-    static VERSION = '6.0.0';
+    static VERSION = '1.0.0';
     static instances = new Map();
     
     // Configuration constants
