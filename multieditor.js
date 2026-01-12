@@ -264,10 +264,10 @@ class MultiEditor {
             .t-sky { --bg: #f0f9ff; --card: #ffffff; --text: #0c4a6e; --text-muted: #0ea5e9; --accent: #0284c7; --accent-hover: #0369a1; --border: #bae6fd; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
             .t-dark { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8; --accent: #38bdf8; --accent-hover: #0ea5e9; --border: #334155; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
             .t-midnight { --bg: #020617; --card: #0f172a; --text: #e2e8f0; --text-muted: #64748b; --accent: #8b5cf6; --accent-hover: #7c3aed; --border: #1e293b; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
-            .t-glass { --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --card: rgba(255,255,255,0.15); --text: #ffffff; --text-muted: rgba(255,255,255,0.7); --accent: #ffffff; --accent-hover: rgba(255,255,255,0.9); --border: rgba(255,255,255,0.2); --blur: blur(20px); --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
+            .t-glass { --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --card: rgba(255,255,255,0.15); --text: #ffffff; --text-muted: rgba(255,255,255,0.7); --accent: rgba(255,255,255,0.3); --accent-hover: rgba(255,255,255,0.4); --accent-solid: #667eea; --border: rgba(255,255,255,0.2); --blur: blur(20px); --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
             .t-neon { --bg: #0a0a0a; --card: #111111; --text: #39ff14; --text-muted: #00ff00; --accent: #39ff14; --accent-hover: #00ff00; --border: #39ff14; --success: #39ff14; --warning: #ffff00; --danger: #ff0000; }
-            .t-sunset { --bg: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); --card: rgba(255,255,255,0.2); --text: #ffffff; --text-muted: rgba(255,255,255,0.8); --accent: #ffffff; --accent-hover: rgba(255,255,255,0.9); --border: rgba(255,255,255,0.3); --blur: blur(20px); --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
-            .t-ocean { --bg: linear-gradient(135deg, #667eea 0%, #00d4ff 100%); --card: rgba(255,255,255,0.15); --text: #ffffff; --text-muted: rgba(255,255,255,0.7); --accent: #00d4ff; --accent-hover: #00bcd4; --border: rgba(255,255,255,0.2); --blur: blur(20px); --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
+            .t-sunset { --bg: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); --card: rgba(255,255,255,0.2); --text: #ffffff; --text-muted: rgba(255,255,255,0.8); --accent: rgba(255,255,255,0.3); --accent-hover: rgba(255,255,255,0.4); --accent-solid: #f5576c; --border: rgba(255,255,255,0.3); --blur: blur(20px); --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
+            .t-ocean { --bg: linear-gradient(135deg, #667eea 0%, #00d4ff 100%); --card: rgba(255,255,255,0.15); --text: #ffffff; --text-muted: rgba(255,255,255,0.7); --accent: rgba(0,212,255,0.4); --accent-hover: rgba(0,212,255,0.5); --accent-solid: #00d4ff; --border: rgba(255,255,255,0.2); --blur: blur(20px); --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
             .t-forest { --bg: #1a2f1a; --card: #2d4a2d; --text: #d4edda; --text-muted: #98c99e; --accent: #5cb85c; --accent-hover: #4cae4c; --border: #3d5c3d; --success: #5cb85c; --warning: #f0ad4e; --danger: #d9534f; }
             .t-lavender { --bg: #f5f3ff; --card: #ffffff; --text: #4c1d95; --text-muted: #7c3aed; --accent: #8b5cf6; --accent-hover: #7c3aed; --border: #ddd6fe; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
             .t-copper { --bg: #fef3e2; --card: #ffffff; --text: #7c2d12; --text-muted: #c2410c; --accent: #ea580c; --accent-hover: #c2410c; --border: #fed7aa; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
@@ -590,6 +590,20 @@ class MultiEditor {
                 background: var(--accent); 
                 color: #fff; 
                 border-color: var(--accent);
+            }
+            /* Glass/gradient themes - use solid color for better contrast */
+            .t-glass .me-btn.active,
+            .t-sunset .me-btn.active,
+            .t-ocean .me-btn.active {
+                background: var(--accent-solid, var(--accent));
+                border-color: var(--accent-solid, var(--accent));
+                color: #fff;
+            }
+            .t-glass .me-btn:hover,
+            .t-sunset .me-btn:hover,
+            .t-ocean .me-btn:hover {
+                background: rgba(255,255,255,0.2);
+                border-color: rgba(255,255,255,0.4);
             }
             .me-btn.primary {
                 background: var(--accent);
@@ -1228,10 +1242,16 @@ class MultiEditor {
                 resize: both;
                 overflow: auto;
                 z-index: 10;
+                /* Improve resize smoothness */
+                will-change: transform;
             }
             .me-root.window-mode .me-widget.active {
                 z-index: 100;
                 box-shadow: 0 25px 60px -12px rgba(0,0,0,0.35);
+            }
+            /* Disable transition during drag for smoothness */
+            .me-root.window-mode .me-widget.dragging {
+                transition: none !important;
             }
             .me-root.window-mode .me-widget-h {
                 cursor: move;
@@ -1239,6 +1259,7 @@ class MultiEditor {
             .me-root.window-mode .me-widget.minimized {
                 min-height: auto;
                 height: auto !important;
+                resize: none;
             }
             .me-root.window-mode .me-widget.minimized .me-widget-b {
                 display: none;
@@ -1251,6 +1272,7 @@ class MultiEditor {
                 height: 100% !important;
                 border-radius: 0;
                 z-index: 1000;
+                resize: none;
             }
             
             /* Window mode header actions */
@@ -2981,9 +3003,13 @@ class MultiEditor {
      * Open settings panel
      */
     openSettings() {
-        // Create overlay
+        // Get current theme class from root
+        const root = this.container.querySelector('.me-root');
+        const themeClass = Array.from(root.classList).find(c => c.startsWith('t-')) || 't-slate';
+        
+        // Create overlay inside container so it inherits theme
         const overlay = document.createElement('div');
-        overlay.className = 'me-settings-overlay';
+        overlay.className = `me-settings-overlay ${themeClass}`;
         overlay.onclick = (e) => {
             if (e.target === overlay) this.closeSettings();
         };
@@ -3165,38 +3191,67 @@ class MultiEditor {
         
         let isDragging = false;
         let startX, startY, initialLeft, initialTop;
+        let rafId = null;
         
-        header.onmousedown = (e) => {
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            // Cancel any pending animation frame
+            if (rafId) cancelAnimationFrame(rafId);
+            
+            // Use requestAnimationFrame for smooth movement
+            rafId = requestAnimationFrame(() => {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                widget.style.left = (initialLeft + dx) + 'px';
+                widget.style.top = (initialTop + dy) + 'px';
+            });
+        };
+        
+        const onMouseUp = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // Cancel any pending animation frame
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+            
+            // Remove drag styling
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+            widget.style.transition = '';
+            
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            this._saveWidgetPosition(widget);
+        };
+        
+        header.addEventListener('mousedown', (e) => {
+            // Ignore if clicking on buttons
             if (e.target.closest('.me-widget-h-btn')) return;
             
+            e.preventDefault();
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
             initialLeft = widget.offsetLeft;
             initialTop = widget.offsetTop;
             
+            // Bring to front
             widget.classList.add('active');
             
-            const onMouseMove = (e) => {
-                if (!isDragging) return;
-                
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                
-                widget.style.left = (initialLeft + dx) + 'px';
-                widget.style.top = (initialTop + dy) + 'px';
-            };
-            
-            const onMouseUp = () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                this._saveWidgetPosition(widget);
-            };
+            // Prevent text selection during drag
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'grabbing';
+            widget.style.transition = 'none';
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
-        };
+        });
     }
     
     /**
