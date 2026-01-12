@@ -149,6 +149,54 @@ class MultiEditor {
                 close: "关闭", minimize: "最小化", maximize: "最大化",
                 dows: ["日","一","二","三","四","五","六"],
                 months: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
+            },
+            de: {
+                calendar: "Kalender", editor: "Editor", todo: "Aufgaben", clock: "Uhr", memo: "Memo",
+                timer: "Timer", stopwatch: "Stoppuhr", calculator: "Rechner", pomodoro: "Pomodoro", markdown: "Markdown",
+                save: "Speichern", add: "Hinzufügen", delete: "Löschen", reset: "Zurücksetzen", start: "Start", stop: "Stopp", pause: "Pause",
+                export: "Exportieren", import: "Importieren", fullscreen: "Vollbild", settings: "Einstellungen",
+                work: "Arbeit", break: "Pause", completed: "Abgeschlossen", minutes: "Min", seconds: "Sek",
+                prev: "Zurück", next: "Weiter", today: "Heute", saved: "Gespeichert!", confirm: "Bestätigen",
+                fontSize: "Schriftgröße", displayMode: "Anzeigemodus", gridMode: "Gitter", windowMode: "Fenster",
+                close: "Schließen", minimize: "Minimieren", maximize: "Maximieren",
+                dows: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+                months: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+            },
+            pt: {
+                calendar: "Calendário", editor: "Editor", todo: "Tarefas", clock: "Relógio", memo: "Memo",
+                timer: "Temporizador", stopwatch: "Cronômetro", calculator: "Calculadora", pomodoro: "Pomodoro", markdown: "Markdown",
+                save: "Salvar", add: "Adicionar", delete: "Excluir", reset: "Redefinir", start: "Iniciar", stop: "Parar", pause: "Pausar",
+                export: "Exportar", import: "Importar", fullscreen: "Tela Cheia", settings: "Configurações",
+                work: "Trabalho", break: "Pausa", completed: "Concluído", minutes: "min", seconds: "seg",
+                prev: "Anterior", next: "Próximo", today: "Hoje", saved: "Salvo!", confirm: "Confirmar",
+                fontSize: "Tamanho da Fonte", displayMode: "Modo de Exibição", gridMode: "Grade", windowMode: "Janela",
+                close: "Fechar", minimize: "Minimizar", maximize: "Maximizar",
+                dows: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+                months: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+            },
+            fr: {
+                calendar: "Calendrier", editor: "Éditeur", todo: "Tâches", clock: "Horloge", memo: "Mémo",
+                timer: "Minuteur", stopwatch: "Chronomètre", calculator: "Calculatrice", pomodoro: "Pomodoro", markdown: "Markdown",
+                save: "Enregistrer", add: "Ajouter", delete: "Supprimer", reset: "Réinitialiser", start: "Démarrer", stop: "Arrêter", pause: "Pause",
+                export: "Exporter", import: "Importer", fullscreen: "Plein écran", settings: "Paramètres",
+                work: "Travail", break: "Pause", completed: "Terminé", minutes: "min", seconds: "sec",
+                prev: "Précédent", next: "Suivant", today: "Aujourd'hui", saved: "Enregistré !", confirm: "Confirmer",
+                fontSize: "Taille de police", displayMode: "Mode d'affichage", gridMode: "Grille", windowMode: "Fenêtre",
+                close: "Fermer", minimize: "Réduire", maximize: "Agrandir",
+                dows: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                months: ["Janv", "Févr", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"]
+            },
+            nl: {
+                calendar: "Kalender", editor: "Editor", todo: "Taken", clock: "Klok", memo: "Memo",
+                timer: "Timer", stopwatch: "Stopwatch", calculator: "Rekenmachine", pomodoro: "Pomodoro", markdown: "Markdown",
+                save: "Opslaan", add: "Toevoegen", delete: "Verwijderen", reset: "Resetten", start: "Start", stop: "Stop", pause: "Pauze",
+                export: "Exporteren", import: "Importeren", fullscreen: "Volledig scherm", settings: "Instellingen",
+                work: "Werk", break: "Pauze", completed: "Voltooid", minutes: "min", seconds: "sec",
+                prev: "Vorige", next: "Volgende", today: "Vandaag", saved: "Opgeslagen!", confirm: "Bevestigen",
+                fontSize: "Lettergrootte", displayMode: "Weergavemodus", gridMode: "Raster", windowMode: "Venster",
+                close: "Sluiten", minimize: "Minimaliseren", maximize: " maximaliseren",
+                dows: ["zo", "ma", "di", "wo", "do", "vr", "za"],
+                months: ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
             }
         };
         this.t = this.i18n[this.cfg.lang] || this.i18n.en;
@@ -164,7 +212,11 @@ class MultiEditor {
         this._languages = [
             { code: 'ja', name: '日本語' },
             { code: 'en', name: 'English' },
-            { code: 'zh', name: '中文' }
+            { code: 'zh', name: '中文' },
+            { code: 'de', name: 'Deutsch' },
+            { code: 'pt', name: 'Português' },
+            { code: 'fr', name: 'Français' },
+            { code: 'nl', name: 'Nederlands' }
         ];
         
         // Custom toolbar buttons (can be added via plugin)
