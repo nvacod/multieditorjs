@@ -41,6 +41,7 @@ class MultiEditor {
             reminders: [],
             notes: "",
             code: "",
+            codeLanguage: "javascript",
             timerSeconds: 0,
             stopwatchTime: 0,
             pomodoroWork: 25,
@@ -78,6 +79,22 @@ class MultiEditor {
             showCredit: true,
             creditName: 'NvaCod',
             creditUrl: 'https://github.com/nvacod/multieditorjs/',
+            // Code editor settings
+            enableSpellCheck: true,
+            enableCodeCompletion: true,
+            syntaxColors: {
+                keyword: '#c586c0',
+                string: '#ce9178',
+                number: '#b5cea8',
+                comment: '#6a9955',
+                function: '#dcdcaa',
+                variable: '#9cdcfe',
+                operator: '#d4d4d4',
+                type: '#4ec9b0',
+                tag: '#569cd6',
+                attribute: '#9cdcfe',
+                property: '#9cdcfe'
+            },
             data: { ...defaultData },
             plugins: [],
             onSave: null,
@@ -565,6 +582,152 @@ class MultiEditor {
             .me-textarea::placeholder {
                 color: var(--text-muted);
                 opacity: 0.5;
+            }
+
+            /* ========================================
+               Enhanced Code Editor with Syntax Highlighting
+            ======================================== */
+            .me-editor-container {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            .me-editor-toolbar {
+                display: flex;
+                gap: 8px;
+                padding: 8px 12px;
+                border-bottom: 1px solid var(--border);
+                background: rgba(0,0,0,0.02);
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .me-editor-lang-select {
+                padding: 4px 8px;
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                background: var(--card);
+                color: var(--text);
+                font-size: 11px;
+                font-family: var(--me-f-mono);
+                cursor: pointer;
+            }
+            .me-editor-lang-select:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+            .me-code-wrapper {
+                flex: 1;
+                display: flex;
+                position: relative;
+                overflow: hidden;
+            }
+            .me-code-highlight {
+                position: absolute;
+                top: 0;
+                left: 45px;
+                right: 0;
+                bottom: 0;
+                padding: 15px;
+                font-family: var(--me-f-mono);
+                font-size: 13px;
+                line-height: 1.6;
+                white-space: pre;
+                overflow: auto;
+                pointer-events: none;
+                tab-size: 4;
+                color: transparent;
+            }
+            .me-code-highlight code {
+                display: block;
+                background: none;
+                padding: 0;
+            }
+            /* Syntax highlighting token colors */
+            .me-hl-keyword { color: var(--me-syn-keyword, #c586c0); font-weight: 500; }
+            .me-hl-string { color: var(--me-syn-string, #ce9178); }
+            .me-hl-number { color: var(--me-syn-number, #b5cea8); }
+            .me-hl-comment { color: var(--me-syn-comment, #6a9955); font-style: italic; }
+            .me-hl-function { color: var(--me-syn-function, #dcdcaa); }
+            .me-hl-variable { color: var(--me-syn-variable, #9cdcfe); }
+            .me-hl-operator { color: var(--me-syn-operator, #d4d4d4); }
+            .me-hl-type { color: var(--me-syn-type, #4ec9b0); }
+            .me-hl-tag { color: var(--me-syn-tag, #569cd6); }
+            .me-hl-attribute { color: var(--me-syn-attribute, #9cdcfe); }
+            .me-hl-property { color: var(--me-syn-property, #9cdcfe); }
+            .me-hl-punctuation { color: var(--me-syn-punctuation, #d4d4d4); }
+            .me-hl-regex { color: var(--me-syn-regex, #d16969); }
+            .me-hl-decorator { color: var(--me-syn-decorator, #dcdcaa); }
+            .me-hl-class { color: var(--me-syn-class, #4ec9b0); }
+            .me-hl-constant { color: var(--me-syn-constant, #4fc1ff); }
+            .me-hl-builtin { color: var(--me-syn-builtin, #569cd6); }
+            
+            /* Autocomplete dropdown */
+            .me-autocomplete {
+                position: absolute;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--me-radius-sm);
+                box-shadow: var(--me-shadow-lg);
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+                min-width: 180px;
+                display: none;
+            }
+            .me-autocomplete.show {
+                display: block;
+                animation: me-fadeIn 0.15s ease;
+            }
+            .me-autocomplete-item {
+                padding: 6px 12px;
+                font-size: 12px;
+                font-family: var(--me-f-mono);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: var(--me-transition);
+            }
+            .me-autocomplete-item:hover,
+            .me-autocomplete-item.selected {
+                background: var(--accent);
+                color: #fff;
+            }
+            .me-autocomplete-type {
+                font-size: 9px;
+                padding: 2px 4px;
+                border-radius: 3px;
+                background: rgba(0,0,0,0.1);
+                text-transform: uppercase;
+                font-weight: 600;
+            }
+            .me-autocomplete-item.selected .me-autocomplete-type,
+            .me-autocomplete-item:hover .me-autocomplete-type {
+                background: rgba(255,255,255,0.2);
+            }
+            
+            /* Spell check indicators */
+            .me-spell-error {
+                text-decoration: wavy underline;
+                text-decoration-color: var(--warning);
+                text-underline-offset: 2px;
+            }
+            
+            /* Editor status bar */
+            .me-editor-status {
+                display: flex;
+                gap: 12px;
+                padding: 4px 12px;
+                border-top: 1px solid var(--border);
+                background: rgba(0,0,0,0.02);
+                font-size: 10px;
+                color: var(--text-muted);
+                font-family: var(--me-f-mono);
+            }
+            .me-editor-status-item {
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
 
             /* ========================================
