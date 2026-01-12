@@ -2236,31 +2236,323 @@ class MultiEditor {
     // Editor Widget
     // ========================================
     _renderEditor(b) {
+        // Supported programming languages with their configurations
+        const languages = {
+            'plaintext': { name: 'Plain Text', ext: 'txt' },
+            'javascript': { name: 'JavaScript', ext: 'js' },
+            'typescript': { name: 'TypeScript', ext: 'ts' },
+            'html': { name: 'HTML', ext: 'html' },
+            'css': { name: 'CSS', ext: 'css' },
+            'python': { name: 'Python', ext: 'py' },
+            'php': { name: 'PHP', ext: 'php' },
+            'java': { name: 'Java', ext: 'java' },
+            'c': { name: 'C', ext: 'c' },
+            'cpp': { name: 'C++', ext: 'cpp' },
+            'csharp': { name: 'C#', ext: 'cs' },
+            'ruby': { name: 'Ruby', ext: 'rb' },
+            'swift': { name: 'Swift', ext: 'swift' },
+            'kotlin': { name: 'Kotlin', ext: 'kt' },
+            'dart': { name: 'Dart', ext: 'dart' },
+            'go': { name: 'Go', ext: 'go' },
+            'rust': { name: 'Rust', ext: 'rs' }
+        };
+
+        // Comprehensive keyword definitions for each language
+        const keywords = {
+            javascript: ['async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'export', 'extends', 'false', 'finally', 'for', 'function', 'if', 'import', 'in', 'instanceof', 'let', 'new', 'null', 'return', 'static', 'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'undefined', 'var', 'void', 'while', 'with', 'yield'],
+            typescript: ['abstract', 'any', 'as', 'async', 'await', 'boolean', 'break', 'case', 'catch', 'class', 'const', 'constructor', 'continue', 'debugger', 'declare', 'default', 'delete', 'do', 'else', 'enum', 'export', 'extends', 'false', 'finally', 'for', 'from', 'function', 'get', 'if', 'implements', 'import', 'in', 'infer', 'instanceof', 'interface', 'is', 'keyof', 'let', 'module', 'namespace', 'never', 'new', 'null', 'number', 'object', 'of', 'package', 'private', 'protected', 'public', 'readonly', 'require', 'return', 'set', 'static', 'string', 'super', 'switch', 'symbol', 'this', 'throw', 'true', 'try', 'type', 'typeof', 'undefined', 'unique', 'unknown', 'var', 'void', 'while', 'with', 'yield'],
+            python: ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'],
+            java: ['abstract', 'assert', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class', 'const', 'continue', 'default', 'do', 'double', 'else', 'enum', 'extends', 'false', 'final', 'finally', 'float', 'for', 'goto', 'if', 'implements', 'import', 'instanceof', 'int', 'interface', 'long', 'native', 'new', 'null', 'package', 'private', 'protected', 'public', 'return', 'short', 'static', 'strictfp', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient', 'true', 'try', 'void', 'volatile', 'while'],
+            c: ['auto', 'break', 'case', 'char', 'const', 'continue', 'default', 'do', 'double', 'else', 'enum', 'extern', 'float', 'for', 'goto', 'if', 'inline', 'int', 'long', 'register', 'restrict', 'return', 'short', 'signed', 'sizeof', 'static', 'struct', 'switch', 'typedef', 'union', 'unsigned', 'void', 'volatile', 'while'],
+            cpp: ['alignas', 'alignof', 'and', 'and_eq', 'asm', 'auto', 'bitand', 'bitor', 'bool', 'break', 'case', 'catch', 'char', 'char16_t', 'char32_t', 'class', 'compl', 'concept', 'const', 'constexpr', 'const_cast', 'continue', 'decltype', 'default', 'delete', 'do', 'double', 'dynamic_cast', 'else', 'enum', 'explicit', 'export', 'extern', 'false', 'float', 'for', 'friend', 'goto', 'if', 'inline', 'int', 'long', 'mutable', 'namespace', 'new', 'noexcept', 'not', 'not_eq', 'nullptr', 'operator', 'or', 'or_eq', 'private', 'protected', 'public', 'register', 'reinterpret_cast', 'requires', 'return', 'short', 'signed', 'sizeof', 'static', 'static_assert', 'static_cast', 'struct', 'switch', 'template', 'this', 'thread_local', 'throw', 'true', 'try', 'typedef', 'typeid', 'typename', 'union', 'unsigned', 'using', 'virtual', 'void', 'volatile', 'wchar_t', 'while', 'xor', 'xor_eq'],
+            csharp: ['abstract', 'as', 'base', 'bool', 'break', 'byte', 'case', 'catch', 'char', 'checked', 'class', 'const', 'continue', 'decimal', 'default', 'delegate', 'do', 'double', 'else', 'enum', 'event', 'explicit', 'extern', 'false', 'finally', 'fixed', 'float', 'for', 'foreach', 'goto', 'if', 'implicit', 'in', 'int', 'interface', 'internal', 'is', 'lock', 'long', 'namespace', 'new', 'null', 'object', 'operator', 'out', 'override', 'params', 'private', 'protected', 'public', 'readonly', 'ref', 'return', 'sbyte', 'sealed', 'short', 'sizeof', 'stackalloc', 'static', 'string', 'struct', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'uint', 'ulong', 'unchecked', 'unsafe', 'ushort', 'using', 'var', 'virtual', 'void', 'volatile', 'while'],
+            ruby: ['BEGIN', 'END', 'alias', 'and', 'begin', 'break', 'case', 'class', 'def', 'defined?', 'do', 'else', 'elsif', 'end', 'ensure', 'false', 'for', 'if', 'in', 'module', 'next', 'nil', 'not', 'or', 'redo', 'rescue', 'retry', 'return', 'self', 'super', 'then', 'true', 'undef', 'unless', 'until', 'when', 'while', 'yield'],
+            swift: ['Any', 'Protocol', 'Self', 'Type', 'as', 'associatedtype', 'break', 'case', 'catch', 'class', 'continue', 'convenience', 'default', 'defer', 'deinit', 'do', 'dynamic', 'else', 'enum', 'extension', 'fallthrough', 'false', 'fileprivate', 'final', 'for', 'func', 'get', 'guard', 'if', 'import', 'in', 'indirect', 'infix', 'init', 'inout', 'internal', 'is', 'lazy', 'let', 'mutating', 'nil', 'nonmutating', 'open', 'operator', 'optional', 'override', 'postfix', 'precedence', 'prefix', 'private', 'protocol', 'public', 'repeat', 'required', 'rethrows', 'return', 'self', 'set', 'static', 'struct', 'subscript', 'super', 'switch', 'throw', 'throws', 'true', 'try', 'typealias', 'unowned', 'var', 'weak', 'where', 'while'],
+            kotlin: ['abstract', 'annotation', 'as', 'break', 'by', 'catch', 'class', 'companion', 'const', 'constructor', 'continue', 'crossinline', 'data', 'do', 'dynamic', 'else', 'enum', 'external', 'false', 'final', 'finally', 'for', 'fun', 'get', 'if', 'import', 'in', 'infix', 'init', 'inline', 'inner', 'interface', 'internal', 'is', 'lateinit', 'noinline', 'null', 'object', 'open', 'operator', 'out', 'override', 'package', 'private', 'protected', 'public', 'reified', 'return', 'sealed', 'set', 'super', 'suspend', 'tailrec', 'this', 'throw', 'true', 'try', 'typealias', 'val', 'var', 'vararg', 'when', 'where', 'while'],
+            dart: ['abstract', 'as', 'assert', 'async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 'covariant', 'default', 'deferred', 'do', 'dynamic', 'else', 'enum', 'export', 'extends', 'extension', 'external', 'factory', 'false', 'final', 'finally', 'for', 'Function', 'get', 'hide', 'if', 'implements', 'import', 'in', 'interface', 'is', 'late', 'library', 'mixin', 'new', 'null', 'on', 'operator', 'part', 'required', 'rethrow', 'return', 'set', 'show', 'static', 'super', 'switch', 'sync', 'this', 'throw', 'true', 'try', 'typedef', 'var', 'void', 'while', 'with', 'yield'],
+            go: ['break', 'case', 'chan', 'const', 'continue', 'default', 'defer', 'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface', 'map', 'package', 'range', 'return', 'select', 'struct', 'switch', 'type', 'var'],
+            rust: ['Self', 'abstract', 'as', 'async', 'await', 'become', 'box', 'break', 'const', 'continue', 'crate', 'do', 'dyn', 'else', 'enum', 'extern', 'false', 'final', 'fn', 'for', 'if', 'impl', 'in', 'let', 'loop', 'macro', 'match', 'mod', 'move', 'mut', 'override', 'priv', 'pub', 'ref', 'return', 'self', 'static', 'struct', 'super', 'trait', 'true', 'try', 'type', 'typeof', 'union', 'unsafe', 'unsized', 'use', 'virtual', 'where', 'while', 'yield'],
+            php: ['__halt_compiler', 'abstract', 'and', 'array', 'as', 'break', 'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'false', 'final', 'finally', 'fn', 'for', 'foreach', 'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof', 'insteadof', 'interface', 'isset', 'list', 'match', 'namespace', 'new', 'null', 'or', 'print', 'private', 'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw', 'trait', 'true', 'try', 'unset', 'use', 'var', 'while', 'xor', 'yield'],
+            html: ['html', 'head', 'body', 'div', 'span', 'p', 'a', 'img', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'form', 'input', 'button', 'select', 'option', 'textarea', 'label', 'header', 'footer', 'nav', 'section', 'article', 'aside', 'main', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'script', 'style', 'link', 'meta', 'title'],
+            css: ['color', 'background', 'margin', 'padding', 'border', 'font', 'display', 'position', 'width', 'height', 'top', 'left', 'right', 'bottom', 'flex', 'grid', 'align', 'justify', 'transform', 'transition', 'animation', 'opacity', 'visibility', 'overflow', 'z-index']
+        };
+
+        // Built-in functions for autocomplete
+        const builtins = {
+            javascript: ['console', 'log', 'error', 'warn', 'info', 'document', 'window', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'fetch', 'Promise', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Math', 'JSON', 'Date', 'RegExp', 'Map', 'Set', 'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURI', 'decodeURI', 'addEventListener', 'removeEventListener', 'querySelector', 'querySelectorAll', 'getElementById', 'createElement', 'appendChild', 'innerHTML', 'textContent', 'classList', 'style', 'getAttribute', 'setAttribute', 'forEach', 'map', 'filter', 'reduce', 'find', 'some', 'every', 'includes', 'indexOf', 'push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'concat', 'join', 'split', 'replace', 'toLowerCase', 'toUpperCase', 'trim', 'length', 'toString'],
+            typescript: ['console', 'log', 'error', 'warn', 'info', 'document', 'window', 'setTimeout', 'setInterval', 'Promise', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Math', 'JSON', 'Date', 'RegExp', 'Map', 'Set', 'Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit', 'Exclude', 'Extract', 'NonNullable', 'ReturnType', 'Parameters', 'InstanceType'],
+            python: ['print', 'len', 'range', 'str', 'int', 'float', 'list', 'dict', 'tuple', 'set', 'bool', 'type', 'input', 'open', 'read', 'write', 'close', 'append', 'extend', 'pop', 'remove', 'sort', 'sorted', 'reversed', 'enumerate', 'zip', 'map', 'filter', 'reduce', 'sum', 'min', 'max', 'abs', 'round', 'isinstance', 'issubclass', 'hasattr', 'getattr', 'setattr', 'delattr', 'callable', 'iter', 'next', 'super', 'property', 'classmethod', 'staticmethod', 'format', 'join', 'split', 'strip', 'replace', 'find', 'index', 'count', 'upper', 'lower', 'title', 'capitalize', 'startswith', 'endswith'],
+            java: ['System', 'out', 'println', 'print', 'String', 'Integer', 'Double', 'Float', 'Boolean', 'Character', 'Long', 'Short', 'Byte', 'Object', 'Class', 'Math', 'Arrays', 'Collections', 'List', 'ArrayList', 'LinkedList', 'Map', 'HashMap', 'TreeMap', 'Set', 'HashSet', 'TreeSet', 'Queue', 'Stack', 'Iterator', 'Comparable', 'Comparator', 'Thread', 'Runnable', 'Exception', 'RuntimeException', 'IOException', 'StringBuilder', 'StringBuffer', 'Scanner', 'Random', 'Date', 'Calendar', 'File', 'InputStream', 'OutputStream', 'Reader', 'Writer', 'BufferedReader', 'BufferedWriter', 'PrintWriter', 'equals', 'hashCode', 'toString', 'compareTo', 'length', 'charAt', 'substring', 'indexOf', 'split', 'trim', 'toUpperCase', 'toLowerCase', 'contains', 'startsWith', 'endsWith', 'replace', 'replaceAll', 'matches', 'format', 'valueOf', 'parseInt', 'parseDouble', 'add', 'remove', 'get', 'set', 'size', 'isEmpty', 'clear', 'toArray', 'sort', 'reverse', 'shuffle']
+        };
+
+        const currentLang = this.cfg.data.codeLanguage || 'javascript';
+        const langOptions = Object.entries(languages).map(([key, val]) => 
+            `<option value="${key}" ${key === currentLang ? 'selected' : ''}>${val.name}</option>`
+        ).join('');
+
         b.innerHTML = `
-            <div class="me-editor-outer">
-                <div class="me-lines">1</div>
-                <textarea class="me-textarea" spellcheck="false" placeholder="// Write your code here..."></textarea>
+            <div class="me-editor-container">
+                <div class="me-editor-toolbar">
+                    <select class="me-editor-lang-select" id="me-lang-select">
+                        ${langOptions}
+                    </select>
+                    <label style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--text-muted);">
+                        <input type="checkbox" id="me-spell-check" ${this.cfg.enableSpellCheck ? 'checked' : ''}>
+                        ${this.cfg.lang === 'ja' ? 'スペルチェック' : 'Spell Check'}
+                    </label>
+                </div>
+                <div class="me-code-wrapper">
+                    <div class="me-lines" id="me-code-lines">1</div>
+                    <div class="me-code-highlight" id="me-code-highlight"><code></code></div>
+                    <textarea class="me-textarea" id="me-code-textarea" spellcheck="false" placeholder="// ${this.cfg.lang === 'ja' ? 'コードを入力してください...' : 'Write your code here...'}"></textarea>
+                    <div class="me-autocomplete" id="me-autocomplete"></div>
+                </div>
+                <div class="me-editor-status">
+                    <span class="me-editor-status-item" id="me-status-lang">${languages[currentLang]?.name || 'Plain Text'}</span>
+                    <span class="me-editor-status-item" id="me-status-lines">Ln 1, Col 1</span>
+                    <span class="me-editor-status-item" id="me-status-chars">0 chars</span>
+                </div>
             </div>
         `;
-        const tx = b.querySelector('textarea');
-        const ln = b.querySelector('.me-lines');
+
+        const tx = b.querySelector('#me-code-textarea');
+        const ln = b.querySelector('#me-code-lines');
+        const highlight = b.querySelector('#me-code-highlight code');
+        const autocomplete = b.querySelector('#me-autocomplete');
+        const langSelect = b.querySelector('#me-lang-select');
+        const spellCheck = b.querySelector('#me-spell-check');
+        const statusLang = b.querySelector('#me-status-lang');
+        const statusLines = b.querySelector('#me-status-lines');
+        const statusChars = b.querySelector('#me-status-chars');
+
         tx.value = this.cfg.data.code || '';
-        
+        let selectedAutocompleteIndex = 0;
+        let autocompleteItems = [];
+
+        // Apply custom syntax colors as CSS variables
+        const applyColors = () => {
+            const colors = this.cfg.syntaxColors;
+            const wrapper = b.querySelector('.me-code-wrapper');
+            if (wrapper && colors) {
+                wrapper.style.setProperty('--me-syn-keyword', colors.keyword);
+                wrapper.style.setProperty('--me-syn-string', colors.string);
+                wrapper.style.setProperty('--me-syn-number', colors.number);
+                wrapper.style.setProperty('--me-syn-comment', colors.comment);
+                wrapper.style.setProperty('--me-syn-function', colors.function);
+                wrapper.style.setProperty('--me-syn-variable', colors.variable);
+                wrapper.style.setProperty('--me-syn-operator', colors.operator);
+                wrapper.style.setProperty('--me-syn-type', colors.type);
+                wrapper.style.setProperty('--me-syn-tag', colors.tag);
+                wrapper.style.setProperty('--me-syn-attribute', colors.attribute);
+                wrapper.style.setProperty('--me-syn-property', colors.property);
+            }
+        };
+        applyColors();
+
+        // Syntax highlighting function
+        const highlightCode = (code, lang) => {
+            if (lang === 'plaintext') return this._escapeHtml(code);
+            
+            let escaped = this._escapeHtml(code);
+            const langKeywords = keywords[lang] || [];
+
+            // Comments (single line and multi-line)
+            escaped = escaped.replace(/(\/\/.*$)/gm, '<span class="me-hl-comment">$1</span>');
+            escaped = escaped.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="me-hl-comment">$1</span>');
+            escaped = escaped.replace(/(#.*$)/gm, (match, p1) => {
+                if (['python', 'ruby', 'php'].includes(lang)) {
+                    return '<span class="me-hl-comment">' + p1 + '</span>';
+                }
+                return match;
+            });
+
+            // Strings (double and single quotes)
+            escaped = escaped.replace(/(&quot;(?:[^&]|&(?!quot;))*?&quot;)/g, '<span class="me-hl-string">$1</span>');
+            escaped = escaped.replace(/(&#39;(?:[^&]|&(?!#39;))*?&#39;)/g, '<span class="me-hl-string">$1</span>');
+            escaped = escaped.replace(/(`[^`]*`)/g, '<span class="me-hl-string">$1</span>');
+
+            // Numbers
+            escaped = escaped.replace(/\b(\d+\.?\d*)\b/g, '<span class="me-hl-number">$1</span>');
+
+            // Keywords
+            langKeywords.forEach(kw => {
+                const regex = new RegExp('\\b(' + kw + ')\\b', 'g');
+                escaped = escaped.replace(regex, '<span class="me-hl-keyword">$1</span>');
+            });
+
+            // Function calls
+            escaped = escaped.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="me-hl-function">$1</span>(');
+
+            // Decorators/Annotations
+            escaped = escaped.replace(/(@[a-zA-Z_][a-zA-Z0-9_]*)/g, '<span class="me-hl-decorator">$1</span>');
+
+            return escaped;
+        };
+
         const updateLines = () => {
             const lines = tx.value.split('\n').length;
             ln.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
-        
-        tx.oninput = () => { 
-            this.cfg.data.code = tx.value; 
-            updateLines();
-            this.emit('change', { type: 'code', value: tx.value });
+
+        const updateHighlight = () => {
+            const lang = this.cfg.data.codeLanguage || 'javascript';
+            highlight.innerHTML = highlightCode(tx.value, lang);
         };
-        tx.onscroll = () => { ln.scrollTop = tx.scrollTop; };
-        
-        // Tab support
+
+        const updateStatus = () => {
+            const pos = tx.selectionStart;
+            const lines = tx.value.substring(0, pos).split('\n');
+            const line = lines.length;
+            const col = lines[lines.length - 1].length + 1;
+            statusLines.textContent = `Ln ${line}, Col ${col}`;
+            statusChars.textContent = `${tx.value.length} chars`;
+        };
+
+        // Autocomplete functions
+        const getAutocompleteItems = (word, lang) => {
+            if (!word || word.length < 2) return [];
+            const lowerWord = word.toLowerCase();
+            const items = [];
+            
+            // Add keywords
+            (keywords[lang] || []).forEach(kw => {
+                if (kw.toLowerCase().startsWith(lowerWord)) {
+                    items.push({ text: kw, type: 'keyword' });
+                }
+            });
+            
+            // Add builtins
+            (builtins[lang] || []).forEach(fn => {
+                if (fn.toLowerCase().startsWith(lowerWord)) {
+                    items.push({ text: fn, type: 'function' });
+                }
+            });
+            
+            return items.slice(0, 10);
+        };
+
+        const showAutocomplete = (items) => {
+            if (items.length === 0) {
+                hideAutocomplete();
+                return;
+            }
+            
+            autocompleteItems = items;
+            selectedAutocompleteIndex = 0;
+            
+            autocomplete.innerHTML = items.map((item, i) => 
+                `<div class="me-autocomplete-item ${i === 0 ? 'selected' : ''}" data-index="${i}">
+                    <span class="me-autocomplete-type">${item.type}</span>
+                    <span>${this._escapeHtml(item.text)}</span>
+                </div>`
+            ).join('');
+            
+            // Position autocomplete near cursor
+            const pos = tx.selectionStart;
+            const lines = tx.value.substring(0, pos).split('\n');
+            const lineNum = lines.length;
+            const colNum = lines[lines.length - 1].length;
+            
+            autocomplete.style.top = (lineNum * 20.8 + 50) + 'px';
+            autocomplete.style.left = (colNum * 7.8 + 60) + 'px';
+            autocomplete.classList.add('show');
+
+            // Click handlers
+            autocomplete.querySelectorAll('.me-autocomplete-item').forEach(el => {
+                el.onclick = () => insertAutocomplete(parseInt(el.dataset.index));
+            });
+        };
+
+        const hideAutocomplete = () => {
+            autocomplete.classList.remove('show');
+            autocompleteItems = [];
+        };
+
+        const insertAutocomplete = (index) => {
+            const item = autocompleteItems[index];
+            if (!item) return;
+            
+            const pos = tx.selectionStart;
+            const text = tx.value;
+            
+            // Find word start
+            let wordStart = pos;
+            while (wordStart > 0 && /[a-zA-Z0-9_]/.test(text[wordStart - 1])) {
+                wordStart--;
+            }
+            
+            tx.value = text.substring(0, wordStart) + item.text + text.substring(pos);
+            tx.selectionStart = tx.selectionEnd = wordStart + item.text.length;
+            tx.focus();
+            hideAutocomplete();
+            tx.dispatchEvent(new Event('input'));
+        };
+
+        const getCurrentWord = () => {
+            const pos = tx.selectionStart;
+            const text = tx.value;
+            let wordStart = pos;
+            while (wordStart > 0 && /[a-zA-Z0-9_]/.test(text[wordStart - 1])) {
+                wordStart--;
+            }
+            return text.substring(wordStart, pos);
+        };
+
+        // Event handlers
+        tx.oninput = () => {
+            this.cfg.data.code = tx.value;
+            updateLines();
+            updateHighlight();
+            updateStatus();
+            this.emit('change', { type: 'code', value: tx.value });
+
+            // Trigger autocomplete if enabled
+            if (this.cfg.enableCodeCompletion) {
+                const word = getCurrentWord();
+                const lang = this.cfg.data.codeLanguage || 'javascript';
+                const items = getAutocompleteItems(word, lang);
+                showAutocomplete(items);
+            }
+        };
+
+        tx.onscroll = () => {
+            ln.scrollTop = tx.scrollTop;
+            highlight.scrollTop = tx.scrollTop;
+            highlight.scrollLeft = tx.scrollLeft;
+        };
+
         tx.onkeydown = (e) => {
-            if (e.key === 'Tab') {
+            // Handle autocomplete navigation
+            if (autocomplete.classList.contains('show')) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, autocompleteItems.length - 1);
+                    autocomplete.querySelectorAll('.me-autocomplete-item').forEach((el, i) => {
+                        el.classList.toggle('selected', i === selectedAutocompleteIndex);
+                    });
+                    return;
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, 0);
+                    autocomplete.querySelectorAll('.me-autocomplete-item').forEach((el, i) => {
+                        el.classList.toggle('selected', i === selectedAutocompleteIndex);
+                    });
+                    return;
+                }
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    insertAutocomplete(selectedAutocompleteIndex);
+                    return;
+                }
+                if (e.key === 'Escape') {
+                    hideAutocomplete();
+                    return;
+                }
+            }
+
+            // Tab support
+            if (e.key === 'Tab' && !autocomplete.classList.contains('show')) {
                 e.preventDefault();
                 const start = tx.selectionStart;
                 const end = tx.selectionEnd;
@@ -2268,10 +2560,49 @@ class MultiEditor {
                 tx.selectionStart = tx.selectionEnd = start + 4;
                 tx.oninput();
             }
+
+            // Auto-close brackets
+            const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'" };
+            if (pairs[e.key]) {
+                e.preventDefault();
+                const start = tx.selectionStart;
+                const end = tx.selectionEnd;
+                const selected = tx.value.substring(start, end);
+                tx.value = tx.value.substring(0, start) + e.key + selected + pairs[e.key] + tx.value.substring(end);
+                tx.selectionStart = tx.selectionEnd = start + 1 + selected.length;
+                tx.oninput();
+            }
         };
-        
+
+        tx.onclick = () => {
+            updateStatus();
+            hideAutocomplete();
+        };
+
+        tx.onkeyup = (e) => {
+            if (!['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+                updateStatus();
+            }
+        };
+
+        langSelect.onchange = () => {
+            const newLang = langSelect.value;
+            this.cfg.data.codeLanguage = newLang;
+            statusLang.textContent = languages[newLang]?.name || 'Plain Text';
+            updateHighlight();
+            this.emit('change', { type: 'codeLanguage', value: newLang });
+        };
+
+        spellCheck.onchange = () => {
+            this.cfg.enableSpellCheck = spellCheck.checked;
+        };
+
+        // Initial render
         updateLines();
+        updateHighlight();
+        updateStatus();
     }
+
     
     // ========================================
     // Clock Widget
