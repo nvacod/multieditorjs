@@ -30,7 +30,7 @@ MultiEditor.jsは、標準で**10種類以上のウィジェット**を搭載し
 HTMLファイルにスクリプトを読み込みます。
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/nvacod/multieditorjs/multieditor.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/nvacod/multieditorjs@main/multieditor.js"></script>
 
 ```
 
