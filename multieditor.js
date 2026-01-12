@@ -2371,14 +2371,14 @@ class MultiEditor {
             escaped = escaped.replace(/(&#39;(?:[^&]|&(?!#39;))*?&#39;)/g, '<span class="me-hl-string">$1</span>');
             escaped = escaped.replace(/(`[^`]*`)/g, '<span class="me-hl-string">$1</span>');
 
-            // Numbers
-            escaped = escaped.replace(/\b(\d+\.?\d*)\b/g, '<span class="me-hl-number">$1</span>');
+            // Numbers (integers and decimals)
+            escaped = escaped.replace(/\b(\d+(?:\.\d+)?|\.\d+)\b/g, '<span class="me-hl-number">$1</span>');
 
-            // Keywords
-            langKeywords.forEach(kw => {
-                const regex = new RegExp('\\b(' + kw + ')\\b', 'g');
-                escaped = escaped.replace(regex, '<span class="me-hl-keyword">$1</span>');
-            });
+            // Keywords (using single regex for better performance)
+            if (langKeywords.length > 0) {
+                const keywordPattern = new RegExp('\\b(' + langKeywords.join('|') + ')\\b', 'g');
+                escaped = escaped.replace(keywordPattern, '<span class="me-hl-keyword">$1</span>');
+            }
 
             // Function calls
             escaped = escaped.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="me-hl-function">$1</span>(');
