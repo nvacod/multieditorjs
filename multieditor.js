@@ -635,12 +635,32 @@ class MultiEditor {
                 overflow: auto;
                 pointer-events: none;
                 tab-size: 4;
-                color: transparent;
+                color: var(--text);
             }
             .me-code-highlight code {
                 display: block;
                 background: none;
                 padding: 0;
+            }
+            /* Make textarea text transparent so highlighting shows through */
+            .me-editor-container .me-textarea {
+                color: transparent;
+                caret-color: var(--text);
+                background: transparent;
+            }
+            /* Indent guides */
+            .me-indent-guide {
+                position: absolute;
+                width: 1px;
+                background: var(--border);
+                opacity: 0.4;
+                top: 0;
+                bottom: 0;
+                pointer-events: none;
+            }
+            .me-indent-marker {
+                color: var(--border);
+                opacity: 0.5;
             }
             /* Syntax highlighting token colors */
             .me-hl-keyword { color: var(--me-syn-keyword, #c586c0); font-weight: 500; }
@@ -652,14 +672,25 @@ class MultiEditor {
             .me-hl-operator { color: var(--me-syn-operator, #d4d4d4); }
             .me-hl-type { color: var(--me-syn-type, #4ec9b0); }
             .me-hl-tag { color: var(--me-syn-tag, #569cd6); }
+            .me-hl-tag-bracket { color: var(--me-syn-tag, #808080); }
             .me-hl-attribute { color: var(--me-syn-attribute, #9cdcfe); }
+            .me-hl-attr-value { color: var(--me-syn-string, #ce9178); }
             .me-hl-property { color: var(--me-syn-property, #9cdcfe); }
+            .me-hl-css-property { color: #9cdcfe; }
+            .me-hl-css-value { color: #ce9178; }
+            .me-hl-css-unit { color: #b5cea8; }
+            .me-hl-css-selector { color: #d7ba7d; }
+            .me-hl-css-pseudo { color: #d7ba7d; }
+            .me-hl-css-id { color: #d7ba7d; }
+            .me-hl-css-class { color: #d7ba7d; }
             .me-hl-punctuation { color: var(--me-syn-punctuation, #d4d4d4); }
             .me-hl-regex { color: var(--me-syn-regex, #d16969); }
             .me-hl-decorator { color: var(--me-syn-decorator, #dcdcaa); }
             .me-hl-class { color: var(--me-syn-class, #4ec9b0); }
             .me-hl-constant { color: var(--me-syn-constant, #4fc1ff); }
             .me-hl-builtin { color: var(--me-syn-builtin, #569cd6); }
+            .me-hl-php-var { color: #9cdcfe; }
+            .me-hl-php-tag { color: #569cd6; }
             
             /* Autocomplete dropdown */
             .me-autocomplete {
@@ -2279,8 +2310,11 @@ class MultiEditor {
 
         // Built-in functions for autocomplete
         const builtins = {
-            javascript: ['console', 'log', 'error', 'warn', 'info', 'document', 'window', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'fetch', 'Promise', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Math', 'JSON', 'Date', 'RegExp', 'Map', 'Set', 'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURI', 'decodeURI', 'addEventListener', 'removeEventListener', 'querySelector', 'querySelectorAll', 'getElementById', 'createElement', 'appendChild', 'innerHTML', 'textContent', 'classList', 'style', 'getAttribute', 'setAttribute', 'forEach', 'map', 'filter', 'reduce', 'find', 'some', 'every', 'includes', 'indexOf', 'push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'concat', 'join', 'split', 'replace', 'toLowerCase', 'toUpperCase', 'trim', 'length', 'toString'],
-            typescript: ['console', 'log', 'error', 'warn', 'info', 'document', 'window', 'setTimeout', 'setInterval', 'Promise', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Math', 'JSON', 'Date', 'RegExp', 'Map', 'Set', 'Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit', 'Exclude', 'Extract', 'NonNullable', 'ReturnType', 'Parameters', 'InstanceType'],
+            javascript: ['console', 'log', 'error', 'warn', 'info', 'debug', 'table', 'dir', 'trace', 'assert', 'count', 'time', 'timeEnd', 'group', 'groupEnd', 'document', 'window', 'navigator', 'location', 'history', 'localStorage', 'sessionStorage', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'requestAnimationFrame', 'cancelAnimationFrame', 'fetch', 'XMLHttpRequest', 'Promise', 'async', 'await', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Symbol', 'BigInt', 'Math', 'JSON', 'Date', 'RegExp', 'Error', 'TypeError', 'SyntaxError', 'ReferenceError', 'Map', 'Set', 'WeakMap', 'WeakSet', 'Proxy', 'Reflect', 'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'isInteger', 'encodeURI', 'decodeURI', 'encodeURIComponent', 'decodeURIComponent', 'btoa', 'atob', 'addEventListener', 'removeEventListener', 'dispatchEvent', 'querySelector', 'querySelectorAll', 'getElementById', 'getElementsByClassName', 'getElementsByTagName', 'getElementsByName', 'createElement', 'createTextNode', 'createDocumentFragment', 'appendChild', 'removeChild', 'insertBefore', 'replaceChild', 'cloneNode', 'contains', 'innerHTML', 'outerHTML', 'textContent', 'innerText', 'classList', 'className', 'style', 'cssText', 'getAttribute', 'setAttribute', 'removeAttribute', 'hasAttribute', 'dataset', 'forEach', 'map', 'filter', 'reduce', 'reduceRight', 'find', 'findIndex', 'some', 'every', 'includes', 'indexOf', 'lastIndexOf', 'push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'concat', 'join', 'reverse', 'sort', 'fill', 'copyWithin', 'flat', 'flatMap', 'from', 'of', 'isArray', 'keys', 'values', 'entries', 'split', 'replace', 'replaceAll', 'match', 'matchAll', 'search', 'toLowerCase', 'toUpperCase', 'toLocaleLowerCase', 'toLocaleUpperCase', 'trim', 'trimStart', 'trimEnd', 'padStart', 'padEnd', 'repeat', 'charAt', 'charCodeAt', 'codePointAt', 'normalize', 'startsWith', 'endsWith', 'substring', 'substr', 'slice', 'localeCompare', 'length', 'toString', 'valueOf', 'toJSON', 'toISOString', 'toLocaleString', 'getTime', 'getFullYear', 'getMonth', 'getDate', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'setTime', 'setFullYear', 'setMonth', 'setDate', 'setHours', 'setMinutes', 'setSeconds', 'abs', 'ceil', 'floor', 'round', 'trunc', 'sign', 'max', 'min', 'pow', 'sqrt', 'cbrt', 'exp', 'log', 'log10', 'log2', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'random', 'PI', 'E', 'parse', 'stringify', 'assign', 'create', 'defineProperty', 'defineProperties', 'freeze', 'seal', 'preventExtensions', 'isFrozen', 'isSealed', 'isExtensible', 'getOwnPropertyNames', 'getOwnPropertySymbols', 'getOwnPropertyDescriptor', 'getOwnPropertyDescriptors', 'getPrototypeOf', 'setPrototypeOf', 'hasOwnProperty', 'propertyIsEnumerable', 'then', 'catch', 'finally', 'resolve', 'reject', 'all', 'allSettled', 'race', 'any'],
+            typescript: ['console', 'log', 'error', 'warn', 'info', 'document', 'window', 'setTimeout', 'setInterval', 'Promise', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Symbol', 'Math', 'JSON', 'Date', 'RegExp', 'Map', 'Set', 'WeakMap', 'WeakSet', 'Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit', 'Exclude', 'Extract', 'NonNullable', 'ReturnType', 'Parameters', 'ConstructorParameters', 'InstanceType', 'ThisParameterType', 'OmitThisParameter', 'ThisType', 'Uppercase', 'Lowercase', 'Capitalize', 'Uncapitalize', 'Awaited', 'PropertyKey', 'ReadonlyArray', 'ReadonlyMap', 'ReadonlySet', 'Iterable', 'Iterator', 'IterableIterator', 'Generator', 'GeneratorFunction', 'AsyncGenerator', 'AsyncGeneratorFunction', 'AsyncIterable', 'AsyncIterator', 'AsyncIterableIterator', 'PromiseLike', 'ArrayLike', 'ArrayBuffer', 'SharedArrayBuffer', 'DataView', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'BigInt64Array', 'BigUint64Array'],
+            html: ['html', 'head', 'title', 'base', 'link', 'meta', 'style', 'script', 'noscript', 'body', 'article', 'section', 'nav', 'aside', 'header', 'footer', 'main', 'address', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'menu', 'li', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'div', 'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'ruby', 'rt', 'rp', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'bdi', 'bdo', 'span', 'br', 'wbr', 'ins', 'del', 'picture', 'source', 'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'track', 'map', 'area', 'table', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th', 'form', 'label', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'output', 'progress', 'meter', 'fieldset', 'legend', 'details', 'summary', 'dialog', 'slot', 'template', 'canvas', 'svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'text', 'g', 'defs', 'use', 'symbol', 'clipPath', 'mask', 'pattern', 'image', 'linearGradient', 'radialGradient', 'stop', 'animate', 'animateMotion', 'animateTransform', 'id', 'class', 'style', 'title', 'lang', 'dir', 'hidden', 'tabindex', 'accesskey', 'draggable', 'contenteditable', 'spellcheck', 'autocapitalize', 'autofocus', 'data-', 'aria-', 'role', 'href', 'target', 'rel', 'download', 'hreflang', 'type', 'media', 'src', 'srcset', 'sizes', 'alt', 'width', 'height', 'loading', 'decoding', 'crossorigin', 'referrerpolicy', 'usemap', 'ismap', 'name', 'value', 'placeholder', 'required', 'readonly', 'disabled', 'checked', 'selected', 'multiple', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'list', 'accept', 'capture', 'form', 'formaction', 'formmethod', 'formenctype', 'formnovalidate', 'formtarget', 'action', 'method', 'enctype', 'novalidate', 'accept-charset', 'colspan', 'rowspan', 'headers', 'scope', 'abbr', 'axis', 'align', 'valign', 'char', 'charoff', 'nowrap', 'bgcolor', 'background', 'border', 'cellpadding', 'cellspacing', 'frame', 'rules', 'summary', 'controls', 'autoplay', 'loop', 'muted', 'preload', 'poster', 'playsinline', 'kind', 'srclang', 'default', 'label', 'start', 'reversed', 'open', 'cite', 'datetime', 'xmlns', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset', 'opacity', 'transform', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'd', 'textAnchor', 'dominantBaseline', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle'],
+            css: ['color', 'background', 'background-color', 'background-image', 'background-repeat', 'background-position', 'background-size', 'background-attachment', 'background-clip', 'background-origin', 'background-blend-mode', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'margin-inline', 'margin-block', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'padding-inline', 'padding-block', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-width', 'border-style', 'border-color', 'border-radius', 'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius', 'border-image', 'border-collapse', 'border-spacing', 'outline', 'outline-width', 'outline-style', 'outline-color', 'outline-offset', 'box-shadow', 'box-sizing', 'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height', 'aspect-ratio', 'display', 'visibility', 'opacity', 'position', 'top', 'right', 'bottom', 'left', 'inset', 'z-index', 'float', 'clear', 'overflow', 'overflow-x', 'overflow-y', 'overflow-wrap', 'text-overflow', 'clip', 'clip-path', 'flex', 'flex-direction', 'flex-wrap', 'flex-flow', 'flex-grow', 'flex-shrink', 'flex-basis', 'justify-content', 'align-items', 'align-self', 'align-content', 'order', 'gap', 'row-gap', 'column-gap', 'grid', 'grid-template', 'grid-template-columns', 'grid-template-rows', 'grid-template-areas', 'grid-column', 'grid-row', 'grid-area', 'grid-auto-columns', 'grid-auto-rows', 'grid-auto-flow', 'grid-gap', 'place-content', 'place-items', 'place-self', 'font', 'font-family', 'font-size', 'font-weight', 'font-style', 'font-variant', 'font-stretch', 'font-size-adjust', 'font-kerning', 'font-feature-settings', 'font-variation-settings', 'line-height', 'letter-spacing', 'word-spacing', 'text-align', 'text-align-last', 'text-decoration', 'text-decoration-line', 'text-decoration-style', 'text-decoration-color', 'text-decoration-thickness', 'text-underline-offset', 'text-transform', 'text-indent', 'text-shadow', 'white-space', 'word-break', 'word-wrap', 'overflow-wrap', 'hyphens', 'tab-size', 'direction', 'writing-mode', 'unicode-bidi', 'vertical-align', 'list-style', 'list-style-type', 'list-style-position', 'list-style-image', 'counter-reset', 'counter-increment', 'content', 'quotes', 'cursor', 'pointer-events', 'user-select', 'resize', 'scroll-behavior', 'scroll-snap-type', 'scroll-snap-align', 'scroll-margin', 'scroll-padding', 'touch-action', 'transition', 'transition-property', 'transition-duration', 'transition-timing-function', 'transition-delay', 'animation', 'animation-name', 'animation-duration', 'animation-timing-function', 'animation-delay', 'animation-iteration-count', 'animation-direction', 'animation-fill-mode', 'animation-play-state', 'transform', 'transform-origin', 'transform-style', 'perspective', 'perspective-origin', 'backface-visibility', 'filter', 'backdrop-filter', 'mix-blend-mode', 'isolation', 'object-fit', 'object-position', 'will-change', 'contain', 'container', 'container-type', 'container-name', '@media', '@keyframes', '@font-face', '@import', '@supports', '@layer', '@container', '@property', 'var', 'calc', 'min', 'max', 'clamp', 'rgb', 'rgba', 'hsl', 'hsla', 'hwb', 'lab', 'lch', 'oklch', 'oklab', 'color-mix', 'url', 'linear-gradient', 'radial-gradient', 'conic-gradient', 'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient', 'inherit', 'initial', 'unset', 'revert', 'revert-layer', 'none', 'auto', 'block', 'inline', 'inline-block', 'flex', 'inline-flex', 'grid', 'inline-grid', 'table', 'table-row', 'table-cell', 'contents', 'flow-root', 'absolute', 'relative', 'fixed', 'sticky', 'static', 'normal', 'bold', 'bolder', 'lighter', 'italic', 'oblique', 'uppercase', 'lowercase', 'capitalize', 'center', 'left', 'right', 'justify', 'start', 'end', 'flex-start', 'flex-end', 'space-between', 'space-around', 'space-evenly', 'stretch', 'baseline', 'wrap', 'nowrap', 'wrap-reverse', 'row', 'column', 'row-reverse', 'column-reverse', 'hidden', 'visible', 'scroll', 'clip', 'cover', 'contain', 'fill', 'scale-down', 'pointer', 'default', 'text', 'move', 'grab', 'grabbing', 'not-allowed', 'crosshair', 'wait', 'help', 'zoom-in', 'zoom-out', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear', 'step-start', 'step-end', 'steps', 'cubic-bezier', 'infinite', 'forwards', 'backwards', 'both', 'alternate', 'alternate-reverse', 'running', 'paused', 'blur', 'brightness', 'contrast', 'drop-shadow', 'grayscale', 'hue-rotate', 'invert', 'saturate', 'sepia', 'rotate', 'scale', 'scaleX', 'scaleY', 'skew', 'skewX', 'skewY', 'translate', 'translateX', 'translateY', 'translateZ', 'translate3d', 'rotate3d', 'rotateX', 'rotateY', 'rotateZ', 'scale3d', 'matrix', 'matrix3d', 'perspective'],
+            php: ['echo', 'print', 'print_r', 'var_dump', 'var_export', 'debug_backtrace', 'debug_print_backtrace', 'error_log', 'trigger_error', 'strlen', 'strpos', 'strrpos', 'stripos', 'strripos', 'substr', 'str_replace', 'str_ireplace', 'preg_match', 'preg_match_all', 'preg_replace', 'preg_split', 'preg_grep', 'explode', 'implode', 'join', 'split', 'sprintf', 'printf', 'sscanf', 'number_format', 'money_format', 'trim', 'ltrim', 'rtrim', 'str_pad', 'str_repeat', 'str_shuffle', 'str_word_count', 'wordwrap', 'nl2br', 'htmlspecialchars', 'htmlentities', 'html_entity_decode', 'strip_tags', 'addslashes', 'stripslashes', 'quotemeta', 'ord', 'chr', 'strtolower', 'strtoupper', 'ucfirst', 'ucwords', 'lcfirst', 'md5', 'sha1', 'hash', 'password_hash', 'password_verify', 'base64_encode', 'base64_decode', 'json_encode', 'json_decode', 'serialize', 'unserialize', 'count', 'sizeof', 'array', 'array_push', 'array_pop', 'array_shift', 'array_unshift', 'array_merge', 'array_merge_recursive', 'array_combine', 'array_keys', 'array_values', 'array_unique', 'array_flip', 'array_reverse', 'array_slice', 'array_splice', 'array_search', 'array_filter', 'array_map', 'array_reduce', 'array_walk', 'array_walk_recursive', 'array_column', 'array_chunk', 'array_pad', 'array_fill', 'array_fill_keys', 'in_array', 'array_key_exists', 'isset', 'unset', 'empty', 'is_null', 'is_array', 'is_object', 'is_string', 'is_int', 'is_integer', 'is_float', 'is_double', 'is_bool', 'is_numeric', 'is_callable', 'is_resource', 'gettype', 'settype', 'intval', 'floatval', 'strval', 'boolval', 'sort', 'rsort', 'asort', 'arsort', 'ksort', 'krsort', 'usort', 'uasort', 'uksort', 'array_multisort', 'shuffle', 'max', 'min', 'array_sum', 'array_product', 'array_rand', 'abs', 'ceil', 'floor', 'round', 'pow', 'sqrt', 'exp', 'log', 'log10', 'rand', 'mt_rand', 'srand', 'mt_srand', 'fopen', 'fclose', 'fread', 'fwrite', 'fgets', 'fgetc', 'fputs', 'feof', 'fseek', 'ftell', 'rewind', 'flock', 'fflush', 'ftruncate', 'file_get_contents', 'file_put_contents', 'file', 'file_exists', 'is_file', 'is_dir', 'is_readable', 'is_writable', 'is_executable', 'mkdir', 'rmdir', 'rename', 'copy', 'unlink', 'chmod', 'chown', 'chgrp', 'filesize', 'filetype', 'filemtime', 'fileatime', 'filectime', 'pathinfo', 'basename', 'dirname', 'realpath', 'glob', 'scandir', 'opendir', 'readdir', 'closedir', 'date', 'time', 'mktime', 'strtotime', 'strftime', 'gmdate', 'getdate', 'localtime', 'checkdate', 'date_create', 'date_format', 'date_modify', 'date_diff', 'date_add', 'date_sub', 'header', 'headers_sent', 'headers_list', 'setcookie', 'session_start', 'session_destroy', 'session_id', 'session_name', 'session_regenerate_id', 'session_unset', '$_GET', '$_POST', '$_REQUEST', '$_SERVER', '$_SESSION', '$_COOKIE', '$_FILES', '$_ENV', '$GLOBALS', 'define', 'defined', 'constant', 'class_exists', 'interface_exists', 'trait_exists', 'method_exists', 'property_exists', 'get_class', 'get_parent_class', 'get_class_methods', 'get_class_vars', 'get_object_vars', 'is_a', 'is_subclass_of', 'get_declared_classes', 'get_declared_interfaces', 'get_declared_traits', 'PDO', 'mysqli', 'mysqli_connect', 'mysqli_query', 'mysqli_fetch_assoc', 'mysqli_fetch_array', 'mysqli_fetch_row', 'mysqli_fetch_object', 'mysqli_num_rows', 'mysqli_affected_rows', 'mysqli_insert_id', 'mysqli_real_escape_string', 'mysqli_close', 'curl_init', 'curl_setopt', 'curl_setopt_array', 'curl_exec', 'curl_close', 'curl_error', 'curl_errno', 'curl_getinfo', 'curl_multi_init', 'curl_multi_add_handle', 'curl_multi_exec', 'curl_multi_getcontent', 'curl_multi_remove_handle', 'curl_multi_close', 'mail', 'preg_match', 'preg_replace', 'array_filter', 'array_map', 'usort', 'Exception', 'Error', 'try', 'catch', 'finally', 'throw', 'new', 'clone', 'self', 'parent', 'static', 'this', '__construct', '__destruct', '__call', '__callStatic', '__get', '__set', '__isset', '__unset', '__sleep', '__wakeup', '__toString', '__invoke', '__set_state', '__clone', '__debugInfo'],
             python: ['print', 'len', 'range', 'str', 'int', 'float', 'list', 'dict', 'tuple', 'set', 'bool', 'type', 'input', 'open', 'read', 'write', 'close', 'append', 'extend', 'pop', 'remove', 'sort', 'sorted', 'reversed', 'enumerate', 'zip', 'map', 'filter', 'reduce', 'sum', 'min', 'max', 'abs', 'round', 'isinstance', 'issubclass', 'hasattr', 'getattr', 'setattr', 'delattr', 'callable', 'iter', 'next', 'super', 'property', 'classmethod', 'staticmethod', 'format', 'join', 'split', 'strip', 'replace', 'find', 'index', 'count', 'upper', 'lower', 'title', 'capitalize', 'startswith', 'endswith'],
             java: ['System', 'out', 'println', 'print', 'String', 'Integer', 'Double', 'Float', 'Boolean', 'Character', 'Long', 'Short', 'Byte', 'Object', 'Class', 'Math', 'Arrays', 'Collections', 'List', 'ArrayList', 'LinkedList', 'Map', 'HashMap', 'TreeMap', 'Set', 'HashSet', 'TreeSet', 'Queue', 'Stack', 'Iterator', 'Comparable', 'Comparator', 'Thread', 'Runnable', 'Exception', 'RuntimeException', 'IOException', 'StringBuilder', 'StringBuffer', 'Scanner', 'Random', 'Date', 'Calendar', 'File', 'InputStream', 'OutputStream', 'Reader', 'Writer', 'BufferedReader', 'BufferedWriter', 'PrintWriter', 'equals', 'hashCode', 'toString', 'compareTo', 'length', 'charAt', 'substring', 'indexOf', 'split', 'trim', 'toUpperCase', 'toLowerCase', 'contains', 'startsWith', 'endsWith', 'replace', 'replaceAll', 'matches', 'format', 'valueOf', 'parseInt', 'parseDouble', 'add', 'remove', 'get', 'set', 'size', 'isEmpty', 'clear', 'toArray', 'sort', 'reverse', 'shuffle']
         };
@@ -2349,18 +2383,156 @@ class MultiEditor {
         };
         applyColors();
 
-        // Syntax highlighting function
+        // Syntax highlighting function - Enhanced for HTML, CSS, JS, PHP
         const highlightCode = (code, lang) => {
             if (lang === 'plaintext') return this._escapeHtml(code);
             
             let escaped = this._escapeHtml(code);
             const langKeywords = keywords[lang] || [];
 
+            // Language-specific highlighting
+            if (lang === 'html') {
+                // HTML Comments
+                escaped = escaped.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="me-hl-comment">$1</span>');
+                
+                // HTML DOCTYPE
+                escaped = escaped.replace(/(&lt;!DOCTYPE[^&]*&gt;)/gi, '<span class="me-hl-keyword">$1</span>');
+                
+                // HTML tags with attributes
+                escaped = escaped.replace(/(&lt;\/?)([\w-]+)((?:\s+[\w-]+(?:=(?:&quot;[^&]*&quot;|&#39;[^&]*&#39;|[^\s&gt;]+))?)*\s*)(\/?&gt;)/gi, (match, open, tagName, attrs, close) => {
+                    let result = '<span class="me-hl-tag-bracket">' + open + '</span>';
+                    result += '<span class="me-hl-tag">' + tagName + '</span>';
+                    
+                    // Parse attributes
+                    if (attrs) {
+                        attrs = attrs.replace(/([\w-]+)(=)(&quot;[^&]*&quot;|&#39;[^&]*&#39;|[^\s&gt;]+)?/g, (m, attrName, eq, attrVal) => {
+                            let attrResult = '<span class="me-hl-attribute">' + attrName + '</span>';
+                            if (eq) attrResult += '<span class="me-hl-punctuation">=</span>';
+                            if (attrVal) attrResult += '<span class="me-hl-attr-value">' + attrVal + '</span>';
+                            return attrResult;
+                        });
+                        result += attrs;
+                    }
+                    
+                    result += '<span class="me-hl-tag-bracket">' + close + '</span>';
+                    return result;
+                });
+                
+                // Inline CSS in style attributes
+                escaped = escaped.replace(/(style=&quot;)([^&]*)(&quot;)/g, (m, open, css, close) => {
+                    let cssHighlighted = css.replace(/([\w-]+)\s*:\s*([^;]+)/g, '<span class="me-hl-css-property">$1</span>: <span class="me-hl-css-value">$2</span>');
+                    return open + cssHighlighted + close;
+                });
+                
+                return escaped;
+            }
+            
+            if (lang === 'css') {
+                // CSS Comments
+                escaped = escaped.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="me-hl-comment">$1</span>');
+                
+                // CSS selectors, classes, ids
+                escaped = escaped.replace(/(^|\}|\{|;)\s*([^{};]+?)(\s*\{)/gm, (match, before, selector, brace) => {
+                    let highlighted = selector
+                        .replace(/(\.[a-zA-Z_][\w-]*)/g, '<span class="me-hl-css-class">$1</span>')
+                        .replace(/(#[a-zA-Z_][\w-]*)/g, '<span class="me-hl-css-id">$1</span>')
+                        .replace(/(::?[\w-]+)/g, '<span class="me-hl-css-pseudo">$1</span>')
+                        .replace(/\b([a-zA-Z][\w-]*)\b(?![:\.])/g, '<span class="me-hl-tag">$1</span>');
+                    return before + highlighted + brace;
+                });
+                
+                // CSS properties and values
+                escaped = escaped.replace(/([\w-]+)\s*:\s*([^;{}]+)(;?)/g, (match, prop, value, semi) => {
+                    let highlightedValue = value
+                        .replace(/\b(\d+(?:\.\d+)?)(px|em|rem|%|vh|vw|pt|cm|mm|in|ex|ch|vmin|vmax|deg|rad|grad|turn|s|ms|Hz|kHz|dpi|dpcm|dppx)?\b/g, '<span class="me-hl-number">$1</span><span class="me-hl-css-unit">$2</span>')
+                        .replace(/(#[0-9a-fA-F]{3,8})\b/g, '<span class="me-hl-number">$1</span>')
+                        .replace(/\b(rgb|rgba|hsl|hsla|url|calc|var|linear-gradient|radial-gradient|repeat|no-repeat|cover|contain|center|left|right|top|bottom|auto|inherit|initial|unset|none|block|inline|flex|grid|absolute|relative|fixed|sticky)\b/gi, '<span class="me-hl-keyword">$1</span>');
+                    return '<span class="me-hl-css-property">' + prop + '</span>: ' + highlightedValue + semi;
+                });
+                
+                // @rules
+                escaped = escaped.replace(/(@[\w-]+)/g, '<span class="me-hl-keyword">$1</span>');
+                
+                return escaped;
+            }
+            
+            if (lang === 'php') {
+                // PHP tags
+                escaped = escaped.replace(/(&lt;\?php|\?&gt;|&lt;\?=)/g, '<span class="me-hl-php-tag">$1</span>');
+                
+                // PHP variables
+                escaped = escaped.replace(/(\$[a-zA-Z_][a-zA-Z0-9_]*)/g, '<span class="me-hl-php-var">$1</span>');
+                
+                // Comments
+                escaped = escaped.replace(/(\/\/.*$)/gm, '<span class="me-hl-comment">$1</span>');
+                escaped = escaped.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="me-hl-comment">$1</span>');
+                escaped = escaped.replace(/(#.*$)/gm, '<span class="me-hl-comment">$1</span>');
+                
+                // Strings
+                escaped = escaped.replace(/(&quot;(?:[^&]|&(?!quot;))*?&quot;)/g, '<span class="me-hl-string">$1</span>');
+                escaped = escaped.replace(/(&#39;(?:[^&]|&(?!#39;))*?&#39;)/g, '<span class="me-hl-string">$1</span>');
+                
+                // Numbers
+                escaped = escaped.replace(/\b(\d+(?:\.\d+)?|\.\d+)\b/g, '<span class="me-hl-number">$1</span>');
+                
+                // Keywords
+                if (langKeywords.length > 0) {
+                    const keywordPattern = new RegExp('\\b(' + langKeywords.join('|') + ')\\b', 'g');
+                    escaped = escaped.replace(keywordPattern, '<span class="me-hl-keyword">$1</span>');
+                }
+                
+                // Function calls
+                escaped = escaped.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="me-hl-function">$1</span>(');
+                
+                // Class and interface names after keywords
+                escaped = escaped.replace(/\b(class|interface|trait|extends|implements|new)\s+([A-Z][a-zA-Z0-9_]*)/g, '$1 <span class="me-hl-class">$2</span>');
+                
+                return escaped;
+            }
+            
+            // JavaScript/TypeScript enhanced highlighting
+            if (lang === 'javascript' || lang === 'typescript') {
+                // Comments - do first to protect them
+                escaped = escaped.replace(/(\/\/.*$)/gm, '<span class="me-hl-comment">$1</span>');
+                escaped = escaped.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="me-hl-comment">$1</span>');
+                
+                // Template literals
+                escaped = escaped.replace(/(`[^`]*`)/g, '<span class="me-hl-string">$1</span>');
+                
+                // Strings
+                escaped = escaped.replace(/(&quot;(?:[^&]|&(?!quot;))*?&quot;)/g, '<span class="me-hl-string">$1</span>');
+                escaped = escaped.replace(/(&#39;(?:[^&]|&(?!#39;))*?&#39;)/g, '<span class="me-hl-string">$1</span>');
+                
+                // Keywords - do before numbers and functions
+                if (langKeywords.length > 0) {
+                    const keywordPattern = new RegExp('(?<![a-zA-Z_])\\b(' + langKeywords.join('|') + ')\\b(?![a-zA-Z_])', 'g');
+                    escaped = escaped.replace(keywordPattern, '<span class="me-hl-keyword">$1</span>');
+                }
+                
+                // Numbers (including hex, binary, octal) - only match standalone numbers not in HTML
+                escaped = escaped.replace(/(?<![a-zA-Z_"=-])\b(0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b(?![a-zA-Z_])/g, '<span class="me-hl-number">$1</span>');
+                
+                // Function declarations
+                escaped = escaped.replace(/(<span class="me-hl-keyword">function<\/span>)\s+([a-zA-Z_][a-zA-Z0-9_]*)/g, '$1 <span class="me-hl-function">$2</span>');
+                
+                // Function calls - only if not already highlighted
+                escaped = escaped.replace(/(?<!<span[^>]*>)\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="me-hl-function">$1</span>(');
+                
+                // Object properties
+                escaped = escaped.replace(/\.([a-zA-Z_][a-zA-Z0-9_]*)(?![^<]*>)/g, '.<span class="me-hl-property">$1</span>');
+                
+                // Decorators
+                escaped = escaped.replace(/(@[a-zA-Z_][a-zA-Z0-9_]*)/g, '<span class="me-hl-decorator">$1</span>');
+                
+                return escaped;
+            }
+            
+            // Default highlighting for other languages
             // Comments (single line and multi-line)
             escaped = escaped.replace(/(\/\/.*$)/gm, '<span class="me-hl-comment">$1</span>');
             escaped = escaped.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="me-hl-comment">$1</span>');
             escaped = escaped.replace(/(#.*$)/gm, (match, p1) => {
-                if (['python', 'ruby', 'php'].includes(lang)) {
+                if (['python', 'ruby'].includes(lang)) {
                     return '<span class="me-hl-comment">' + p1 + '</span>';
                 }
                 return match;
@@ -2396,7 +2568,27 @@ class MultiEditor {
 
         const updateHighlight = () => {
             const lang = this.cfg.data.codeLanguage || 'javascript';
-            highlight.innerHTML = highlightCode(tx.value, lang);
+            // Highlight the entire code first
+            let highlighted = highlightCode(tx.value, lang);
+            // Add indent guides by replacing leading spaces on each line
+            const lines = highlighted.split('\n');
+            const withGuides = lines.map(line => {
+                // Match leading actual space characters only (not HTML)
+                const match = line.match(/^( +)/);
+                if (match) {
+                    const spaces = match[1];
+                    const tabCount = Math.floor(spaces.length / 4);
+                    const remainder = spaces.length % 4;
+                    let guides = '';
+                    for (let t = 0; t < tabCount; t++) {
+                        guides += '<span class="me-indent-marker">│</span>   ';
+                    }
+                    guides += ' '.repeat(remainder);
+                    return guides + line.substring(spaces.length);
+                }
+                return line;
+            });
+            highlight.innerHTML = withGuides.join('\n');
         };
 
         const updateStatus = () => {
@@ -2579,7 +2771,21 @@ class MultiEditor {
             hideAutocomplete();
         };
 
+        // Hide autocomplete when textarea loses focus
+        tx.onblur = () => {
+            // Delay to allow click on autocomplete items
+            setTimeout(() => {
+                if (!autocomplete.matches(':hover')) {
+                    hideAutocomplete();
+                }
+            }, 150);
+        };
+
         tx.onkeyup = (e) => {
+            // Hide autocomplete on cursor navigation keys
+            if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+                hideAutocomplete();
+            }
             if (!['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
                 updateStatus();
             }
@@ -3738,27 +3944,44 @@ class MultiEditor {
         let isDragging = false;
         let startX, startY, initialLeft, initialTop;
         let rafId = null;
+        let longPressTimer = null;
+        let isLongPress = false;
         
-        const onMouseMove = (e) => {
+        const getEventCoords = (e) => {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        };
+        
+        const onMove = (e) => {
             if (!isDragging) return;
             e.preventDefault();
             
             // Cancel any pending animation frame
             if (rafId) cancelAnimationFrame(rafId);
             
+            const coords = getEventCoords(e);
+            
             // Use requestAnimationFrame for smooth movement
             rafId = requestAnimationFrame(() => {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
+                const dx = coords.x - startX;
+                const dy = coords.y - startY;
                 
                 widget.style.left = (initialLeft + dx) + 'px';
                 widget.style.top = (initialTop + dy) + 'px';
             });
         };
         
-        const onMouseUp = () => {
+        const onEnd = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            
             if (!isDragging) return;
             isDragging = false;
+            isLongPress = false;
             
             // Cancel any pending animation frame
             if (rafId) {
@@ -3771,19 +3994,20 @@ class MultiEditor {
             document.body.style.cursor = '';
             widget.style.transition = '';
             
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+            document.removeEventListener('touchcancel', onEnd);
+            
             this._saveWidgetPosition(widget);
         };
         
-        header.addEventListener('mousedown', (e) => {
-            // Ignore if clicking on buttons
-            if (e.target.closest('.me-widget-h-btn')) return;
-            
+        const startDrag = (e, coords) => {
             e.preventDefault();
             isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
+            startX = coords.x;
+            startY = coords.y;
             initialLeft = widget.offsetLeft;
             initialTop = widget.offsetTop;
             
@@ -3795,8 +4019,67 @@ class MultiEditor {
             document.body.style.cursor = 'grabbing';
             widget.style.transition = 'none';
             
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+            document.addEventListener('touchcancel', onEnd);
+        };
+        
+        // Mouse events
+        header.addEventListener('mousedown', (e) => {
+            // Ignore if clicking on buttons
+            if (e.target.closest('.me-widget-h-btn')) return;
+            startDrag(e, getEventCoords(e));
+        });
+        
+        // Touch events with long-press support
+        header.addEventListener('touchstart', (e) => {
+            // Ignore if clicking on buttons
+            if (e.target.closest('.me-widget-h-btn')) return;
+            
+            const coords = getEventCoords(e);
+            
+            // Start long press timer
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                startDrag(e, coords);
+                // Vibrate if supported
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }, 300); // 300ms for long press
+        }, { passive: true });
+        
+        header.addEventListener('touchmove', (e) => {
+            // If we're dragging, handle it
+            if (isDragging) {
+                onMove(e);
+            } else if (longPressTimer) {
+                // Cancel long press if moving before timer fires
+                const coords = getEventCoords(e);
+                const moveThreshold = 10;
+                if (startX !== undefined && (Math.abs(coords.x - startX) > moveThreshold || Math.abs(coords.y - startY) > moveThreshold)) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+        }, { passive: false });
+        
+        header.addEventListener('touchend', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            onEnd();
+        });
+        
+        header.addEventListener('touchcancel', () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            onEnd();
         });
     }
     
