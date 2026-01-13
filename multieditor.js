@@ -2505,12 +2505,12 @@ class MultiEditor {
                 
                 // Keywords - do before numbers and functions
                 if (langKeywords.length > 0) {
-                    const keywordPattern = new RegExp('(?<![a-zA-Z_])\\b(' + langKeywords.join('|') + ')\\b(?![a-zA-Z_])', 'g');
+                    const keywordPattern = new RegExp('\\b(' + langKeywords.join('|') + ')\\b', 'g');
                     escaped = escaped.replace(keywordPattern, '<span class="me-hl-keyword">$1</span>');
                 }
                 
-                // Numbers (including hex, binary, octal) - only match standalone numbers not in HTML
-                escaped = escaped.replace(/(?<![a-zA-Z_"=-])\b(0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b(?![a-zA-Z_])/g, '<span class="me-hl-number">$1</span>');
+                // Numbers (including hex, binary, octal) - only match standalone numbers not in HTML attributes
+                escaped = escaped.replace(/(?<![="'-])\b(0x[0-9a-fA-F]+|0b[01]+|0o[0-7]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b/g, '<span class="me-hl-number">$1</span>');
                 
                 // Function declarations
                 escaped = escaped.replace(/(<span class="me-hl-keyword">function<\/span>)\s+([a-zA-Z_][a-zA-Z0-9_]*)/g, '$1 <span class="me-hl-function">$2</span>');
@@ -2573,18 +2573,20 @@ class MultiEditor {
             // Add indent guides by replacing leading spaces on each line
             const lines = highlighted.split('\n');
             const withGuides = lines.map(line => {
-                // Match leading actual space characters only (not HTML)
-                const match = line.match(/^( +)/);
+                // Match leading whitespace (spaces or tabs)
+                const match = line.match(/^([ \t]+)/);
                 if (match) {
-                    const spaces = match[1];
-                    const tabCount = Math.floor(spaces.length / 4);
-                    const remainder = spaces.length % 4;
+                    const whitespace = match[1];
+                    // Convert tabs to 4 spaces for counting
+                    const spaceEquivalent = whitespace.replace(/\t/g, '    ').length;
+                    const tabCount = Math.floor(spaceEquivalent / 4);
+                    const remainder = spaceEquivalent % 4;
                     let guides = '';
                     for (let t = 0; t < tabCount; t++) {
                         guides += '<span class="me-indent-marker">│</span>   ';
                     }
                     guides += ' '.repeat(remainder);
-                    return guides + line.substring(spaces.length);
+                    return guides + line.substring(whitespace.length);
                 }
                 return line;
             });
@@ -4034,11 +4036,13 @@ class MultiEditor {
         });
         
         // Touch events with long-press support
+        let touchStartCoords = null;
         header.addEventListener('touchstart', (e) => {
             // Ignore if clicking on buttons
             if (e.target.closest('.me-widget-h-btn')) return;
             
             const coords = getEventCoords(e);
+            touchStartCoords = coords; // Save initial touch position
             
             // Start long press timer
             longPressTimer = setTimeout(() => {
@@ -4055,11 +4059,11 @@ class MultiEditor {
             // If we're dragging, handle it
             if (isDragging) {
                 onMove(e);
-            } else if (longPressTimer) {
+            } else if (longPressTimer && touchStartCoords) {
                 // Cancel long press if moving before timer fires
                 const coords = getEventCoords(e);
                 const moveThreshold = 10;
-                if (startX !== undefined && (Math.abs(coords.x - startX) > moveThreshold || Math.abs(coords.y - startY) > moveThreshold)) {
+                if (Math.abs(coords.x - touchStartCoords.x) > moveThreshold || Math.abs(coords.y - touchStartCoords.y) > moveThreshold) {
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
@@ -4067,6 +4071,7 @@ class MultiEditor {
         }, { passive: false });
         
         header.addEventListener('touchend', () => {
+            touchStartCoords = null;
             if (longPressTimer) {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
@@ -4075,6 +4080,7 @@ class MultiEditor {
         });
         
         header.addEventListener('touchcancel', () => {
+            touchStartCoords = null;
             if (longPressTimer) {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
