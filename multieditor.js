@@ -317,7 +317,8 @@ class MultiEditor {
                 --me-radius: 12px; 
                 --me-radius-sm: 8px;
                 --me-radius-lg: 16px;
-                --me-f-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Liberation Mono', Menlo, monospace;
+                // --me-f-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Liberation Mono', Menlo, monospace;
+                --me-f-mono: 'Liberation Mono', Menlo, monospace;
                 --me-f-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                 --me-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 --me-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
@@ -500,7 +501,7 @@ class MultiEditor {
             .me-widget-h { 
                 padding: 10px 14px; 
                 font-size: 11px; 
-                font-weight: 800; 
+                font-family: var(--me-f-mono);  
                 text-transform: uppercase; 
                 letter-spacing: 0.5px;
                 color: var(--accent); 
@@ -554,7 +555,7 @@ class MultiEditor {
                 width: 45px; 
                 padding: 15px 8px 15px 0; 
                 text-align: right; 
-                font-family: var(--me-f-mono); 
+                font-family: var(--me-f-mono);
                 font-size: 13px; 
                 line-height: 1.6;
                 color: var(--text-muted); 
@@ -569,6 +570,7 @@ class MultiEditor {
                 border: none; 
                 outline: none; 
                 padding: 15px; 
+                font-weight: 500;
                 font-family: var(--me-f-mono); 
                 font-size: 13px; 
                 line-height: 1.6; 
@@ -578,6 +580,8 @@ class MultiEditor {
                 white-space: pre; 
                 overflow-x: auto;
                 tab-size: 4;
+                -webkit-overflow-scrolling: touch; /* iOSでのスクロールを滑らかに */
+                overflow-x: auto;
             }
             .me-textarea::placeholder {
                 color: var(--text-muted);
@@ -2592,6 +2596,13 @@ class MultiEditor {
             });
             highlight.innerHTML = withGuides.join('\n');
         };
+
+        tx.addEventListener('scroll', () => {
+            // 垂直・水平両方のスクロールを同期させる
+            highlight.parentElement.scrollTop = tx.scrollTop;
+            highlight.parentElement.scrollLeft = tx.scrollLeft;
+            ln.scrollTop = tx.scrollTop;
+        });
 
         const updateStatus = () => {
             const pos = tx.selectionStart;
