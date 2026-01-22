@@ -317,7 +317,7 @@ class MultiEditor {
                 --me-radius: 12px; 
                 --me-radius-sm: 8px;
                 --me-radius-lg: 16px;
-                --me-f-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Liberation Mono', Menlo, monospace;
+                --me-f-mono: 'Liberation Mono', Menlo, monospace;
                 --me-f-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                 --me-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 --me-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
